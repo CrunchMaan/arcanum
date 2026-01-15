@@ -1,4 +1,3 @@
-import type { AgentConfig } from "@opencode-ai/sdk";
 import type { AgentDefinition } from "./orchestrator";
 
 export function createMultimodalAgent(model: string): AgentDefinition {

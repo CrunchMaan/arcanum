@@ -27,16 +27,9 @@ const OhMyOpenCodeLite: Plugin = async (ctx) => {
         Object.assign(configAgent, agents);
       }
     },
-
-    event: async (input) => {
-      const { event } = input;
-      if (event.type === "session.created") {
-        console.log("[lite] Session created");
-      }
-    },
   };
 };
 
 export default OhMyOpenCodeLite;
 
-export type { PluginConfig, AgentConfig, AgentName } from "./config";
+export type { PluginConfig, AgentOverrideConfig, AgentName } from "./config";

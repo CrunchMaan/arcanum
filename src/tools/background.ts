@@ -1,5 +1,11 @@
 import { tool, type PluginInput, type ToolDefinition } from "@opencode-ai/plugin";
 import type { BackgroundTaskManager } from "../features";
+import {
+  POLL_INTERVAL_MS,
+  MAX_POLL_TIME_MS,
+  DEFAULT_TIMEOUT_MS,
+  STABLE_POLLS_THRESHOLD,
+} from "../config";
 
 const z = tool.schema;
 
@@ -66,7 +72,7 @@ Use \`background_output\` with task_id="${task.id}" to get results.`;
     async execute(args) {
       const taskId = String(args.task_id);
       const block = args.block === true;
-      const timeout = typeof args.timeout === "number" ? args.timeout : 120000;
+      const timeout = typeof args.timeout === "number" ? args.timeout : DEFAULT_TIMEOUT_MS;
 
       const task = await manager.getResult(taskId, block, timeout);
       if (!task) {
@@ -174,13 +180,11 @@ session_id: ${sessionID}
 </task_metadata>`;
   }
 
-  const POLL_INTERVAL = 500;
-  const MAX_POLL_TIME = 5 * 60 * 1000;
   const pollStart = Date.now();
   let lastMsgCount = 0;
   let stablePolls = 0;
 
-  while (Date.now() - pollStart < MAX_POLL_TIME) {
+  while (Date.now() - pollStart < MAX_POLL_TIME_MS) {
     if (toolContext.abort?.aborted) {
       return `Task aborted.
 
@@ -189,7 +193,7 @@ session_id: ${sessionID}
 </task_metadata>`;
     }
 
-    await new Promise((r) => setTimeout(r, POLL_INTERVAL));
+    await new Promise((r) => setTimeout(r, POLL_INTERVAL_MS));
 
     const statusResult = await ctx.client.session.status();
     const allStatuses = (statusResult.data ?? {}) as Record<string, { type: string }>;
@@ -207,14 +211,14 @@ session_id: ${sessionID}
 
     if (currentMsgCount > 0 && currentMsgCount === lastMsgCount) {
       stablePolls++;
-      if (stablePolls >= 3) break;
+      if (stablePolls >= STABLE_POLLS_THRESHOLD) break;
     } else {
       stablePolls = 0;
       lastMsgCount = currentMsgCount;
     }
   }
 
-  if (Date.now() - pollStart >= MAX_POLL_TIME) {
+  if (Date.now() - pollStart >= MAX_POLL_TIME_MS) {
     return `Error: Agent timed out after 5 minutes.
 
 <task_metadata>

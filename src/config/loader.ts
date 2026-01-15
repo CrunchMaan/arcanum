@@ -18,15 +18,13 @@ function loadConfigFromPath(configPath: string): PluginConfig | null {
       const result = PluginConfigSchema.safeParse(rawConfig);
       
       if (!result.success) {
-        console.error(`[lite] Config validation error in ${configPath}:`, result.error.issues);
         return null;
       }
       
-      console.log(`[lite] Config loaded from ${configPath}`);
       return result.data;
     }
-  } catch (err) {
-    console.error(`[lite] Error loading config from ${configPath}:`, err);
+  } catch {
+    // Silently ignore config loading errors
   }
   return null;
 }
@@ -73,12 +71,6 @@ export function loadPluginConfig(directory: string): PluginConfig {
       ...config,
       ...projectConfig,
       agents: deepMerge(config.agents, projectConfig.agents),
-      custom_agents: [
-        ...new Map([
-          ...(config.custom_agents ?? []).map((a) => [a.name, a] as const),
-          ...(projectConfig.custom_agents ?? []).map((a) => [a.name, a] as const),
-        ]).values(),
-      ],
       disabled_agents: [
         ...new Set([
           ...(config.disabled_agents ?? []),

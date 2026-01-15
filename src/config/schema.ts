@@ -1,7 +1,7 @@
 import { z } from "zod";
 
-// Agent configuration
-export const AgentConfigSchema = z.object({
+// Agent override configuration (distinct from SDK's AgentConfig)
+export const AgentOverrideConfigSchema = z.object({
   model: z.string().optional(),
   temperature: z.number().min(0).max(2).optional(),
   prompt: z.string().optional(),
@@ -9,18 +9,11 @@ export const AgentConfigSchema = z.object({
   disable: z.boolean().optional(),
 });
 
-export type AgentConfig = z.infer<typeof AgentConfigSchema>;
+export type AgentOverrideConfig = z.infer<typeof AgentOverrideConfigSchema>;
 
 // Main plugin config
 export const PluginConfigSchema = z.object({
-  agents: z.record(z.string(), AgentConfigSchema).optional(),
-  custom_agents: z.array(z.object({
-    name: z.string(),
-    description: z.string(),
-    prompt: z.string(),
-    model: z.string().optional(),
-    temperature: z.number().optional(),
-  })).optional(),
+  agents: z.record(z.string(), AgentOverrideConfigSchema).optional(),
   disabled_agents: z.array(z.string()).optional(),
 });
 
@@ -38,12 +31,12 @@ export type AgentName =
   | "code-simplicity-reviewer";
 
 export const DEFAULT_MODELS: Record<AgentName, string> = {
-  orchestrator: "anthropic/claude-sonnet-4-5",
-  oracle: "openai/gpt-4.1",
-  librarian: "anthropic/claude-sonnet-4-5",
-  explore: "anthropic/claude-haiku-4-5",
-  "frontend-ui-ux-engineer": "google/gemini-2.5-pro",
-  "document-writer": "google/gemini-2.5-pro",
-  "multimodal-looker": "google/gemini-2.5-flash",
-  "code-simplicity-reviewer": "anthropic/claude-sonnet-4-5",
+  orchestrator: "google/claude-opus-4-5-thinking",
+  oracle: "openai/gpt-5.2-codex",
+  librarian: "google/gemini-3-flash",
+  explore: "cerebras/zai-glm-4.6",
+  "frontend-ui-ux-engineer": "google/gemini-3-flash",
+  "document-writer": "google/gemini-3-flash",
+  "multimodal-looker": "google/gemini-3-flash",
+  "code-simplicity-reviewer": "google/claude-opus-4-5-thinking",
 };

@@ -1,15 +1,44 @@
 {
-  "name": "oh-my-opencode-lite",
+  "name": "oh-my-opencode-slim",
   "version": "0.1.0",
-  "description": "Minimal agent orchestration plugin for OpenCode",
+  "description": "Lightweight agent orchestration plugin for OpenCode - a slimmed-down fork of oh-my-opencode",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "bin": {
+    "oh-my-opencode-slim": "./dist/cli/index.js"
+  },
   "type": "module",
+  "license": "MIT",
+  "keywords": [
+    "opencode",
+    "opencode-plugin",
+    "ai",
+    "agents",
+    "orchestration",
+    "llm",
+    "claude",
+    "gpt",
+    "gemini"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/alvinunreal/oh-my-opencode-slim"
+  },
+  "bugs": {
+    "url": "https://github.com/alvinunreal/oh-my-opencode-slim/issues"
+  },
+  "homepage": "https://github.com/alvinunreal/oh-my-opencode-slim#readme",
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
   "scripts": {
-    "build": "bun build src/index.ts --outdir dist --target bun --format esm && tsc --emitDeclarationOnly",
+    "build": "bun build src/index.ts --outdir dist --target bun --format esm && bun build src/cli/index.ts --outdir dist/cli --target bun --format esm && tsc --emitDeclarationOnly",
     "typecheck": "tsc --noEmit",
     "test": "bun test",
-    "dev": "bun run build && opencode"
+    "dev": "bun run build && opencode",
+    "prepublishOnly": "bun run build"
   },
   "dependencies": {
     "@opencode-ai/plugin": "^1.1.19",

@@ -1,4 +1,5 @@
 import type { PluginInput } from "@opencode-ai/plugin";
+import { POLL_INTERVAL_BACKGROUND_MS, POLL_INTERVAL_SLOW_MS } from "../config";
 
 type OpencodeClient = PluginInput["client"];
 
@@ -96,7 +97,7 @@ export class BackgroundTaskManager {
       if (status === "completed" || status === "failed") {
         return task;
       }
-      await new Promise((r) => setTimeout(r, 1000));
+      await new Promise((r) => setTimeout(r, POLL_INTERVAL_SLOW_MS));
     }
 
     return task;
@@ -128,7 +129,7 @@ export class BackgroundTaskManager {
 
   private startPolling() {
     if (this.pollInterval) return;
-    this.pollInterval = setInterval(() => this.pollAllTasks(), 2000);
+    this.pollInterval = setInterval(() => this.pollAllTasks(), POLL_INTERVAL_BACKGROUND_MS);
   }
 
   private async pollAllTasks() {
