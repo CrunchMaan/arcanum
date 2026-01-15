@@ -13,7 +13,7 @@ export type { AgentDefinition } from "./orchestrator";
 type AgentFactory = (model: string) => AgentDefinition;
 
 const AGENT_FACTORIES: Record<AgentName, AgentFactory> = {
-  Orchestrator: createOrchestratorAgent,
+  orchestrator: createOrchestratorAgent,
   oracle: createOracleAgent,
   librarian: createLibrarianAgent,
   explore: createExploreAgent,

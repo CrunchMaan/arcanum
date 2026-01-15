@@ -7,7 +7,7 @@ export interface AgentDefinition {
 
 export function createOrchestratorAgent(model: string): AgentDefinition {
   return {
-    name: "Orchestrator",
+    name: "orchestrator",
     config: {
       model,
       temperature: 0.1,

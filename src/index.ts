@@ -18,7 +18,7 @@ const OhMyOpenCodeLite: Plugin = async (ctx) => {
     tool: backgroundTools,
 
     config: async (opencodeConfig: Record<string, unknown>) => {
-      (opencodeConfig as { default_agent?: string }).default_agent = "Orchestrator";
+      (opencodeConfig as { default_agent?: string }).default_agent = "orchestrator";
 
       const configAgent = opencodeConfig.agent as Record<string, unknown> | undefined;
       if (!configAgent) {

@@ -22,7 +22,7 @@ export type PluginConfig = z.infer<typeof PluginConfigSchema>;
 
 // Agent names
 export type AgentName =
-  | "Orchestrator"
+  | "orchestrator"
   | "oracle"
   | "librarian"
   | "explore"
@@ -31,7 +31,7 @@ export type AgentName =
   | "multimodal-looker";
 
 export const DEFAULT_MODELS: Record<AgentName, string> = {
-  Orchestrator: "anthropic/claude-sonnet-4-5",
+  orchestrator: "anthropic/claude-sonnet-4-5",
   oracle: "openai/gpt-4.1",
   librarian: "anthropic/claude-sonnet-4-5",
   explore: "anthropic/claude-haiku-4-5",
