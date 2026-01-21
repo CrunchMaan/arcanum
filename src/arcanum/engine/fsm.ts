@@ -33,7 +33,14 @@ export class FSMExecutor {
    * Get the current step definition
    */
   getCurrentStepDefinition(): StepDefinition | undefined {
-    return this.workflow.steps.find(s => s.id === this.currentStep);
+    return this.getStepDefinition(this.currentStep);
+  }
+
+  /**
+   * Get specific step definition by ID
+   */
+  getStepDefinition(stepId: string): StepDefinition | undefined {
+    return this.workflow.steps.find(s => s.id === stepId);
   }
 
   /**

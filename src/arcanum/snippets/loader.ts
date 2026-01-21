@@ -1,4 +1,5 @@
 import * as path from 'path';
+import { pathToFileURL } from 'url';
 import { SnippetFn } from './types';
 import { SnippetDefinition } from '../types';
 
@@ -22,12 +23,15 @@ export class SnippetLoader {
       throw new Error(`Snippet definition not found: ${snippetId}`);
     }
 
-    const fullPath = path.isAbsolute(def.file) 
-      ? def.file 
-      : path.join(this.protocolDir, 'snippets', def.file);
+    const snippetsDir = path.join(this.protocolDir, '.opencode', 'protocol', 'snippets');
+    const fullPath = path.resolve(snippetsDir, def.file);
+
+    if (!fullPath.startsWith(snippetsDir)) {
+      throw new Error(`Snippet path escapes snippets directory: ${def.file}`);
+    }
 
     try {
-      const module = await import(fullPath);
+      const module = await import(pathToFileURL(fullPath).href);
       const fn = module.default || module[snippetId];
       
       if (typeof fn !== 'function') {

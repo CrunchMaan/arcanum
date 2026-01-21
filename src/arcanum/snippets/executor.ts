@@ -28,6 +28,15 @@ export class SnippetExecutor {
 
       const result = await snippetFn(fullContext);
 
+      // Validate result shape
+      if (!result || typeof result !== 'object' || !('type' in result)) {
+        return { type: 'abort', reason: `Snippet '${snippetId}' returned invalid result` };
+      }
+      const validTypes = ['ok', 'abort', 'patch', 'transition'];
+      if (!validTypes.includes(result.type)) {
+        return { type: 'abort', reason: `Snippet '${snippetId}' returned unknown type: ${result.type}` };
+      }
+
       // If snippet used setState but returned ok/patch, merge them
       if (Object.keys(pendingPatch).length > 0) {
         if (result.type === 'ok') {

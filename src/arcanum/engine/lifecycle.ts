@@ -185,7 +185,7 @@ export class ArcanumEngine {
     stepId: string, 
     transitionTo?: string
   ): Promise<SnippetResult | null> {
-    const step = this.fsm!.getCurrentStepDefinition();
+    const step = this.fsm!.getStepDefinition(stepId);
     const hookId = step?.[hookType];
     if (!hookId || !this.snippetExecutor) return null;
     
