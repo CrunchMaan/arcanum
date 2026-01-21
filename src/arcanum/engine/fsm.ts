@@ -1,4 +1,4 @@
-import type { WorkflowDefinition, TransitionDefinition as Transition, ProtocolState, GateDefinition as Gate } from '../types';
+import type { WorkflowDefinition, TransitionDefinition as Transition, ProtocolState, GateDefinition as Gate, PhaseDefinition, InvokeConfig } from '../types';
 import { GateEvaluator } from './evaluator';
 
 export interface TransitionResult {
@@ -6,6 +6,12 @@ export interface TransitionResult {
   from: string;
   to: string;
   error?: string;
+}
+
+export interface InvokeResult {
+  shouldInvoke: boolean;
+  config?: InvokeConfig;
+  phase?: PhaseDefinition;
 }
 
 export class FSMExecutor {
@@ -21,6 +27,28 @@ export class FSMExecutor {
 
   getCurrentPhase(): string {
     return this.currentPhase;
+  }
+
+  /**
+   * Get the current phase definition
+   */
+  getCurrentPhaseDefinition(): PhaseDefinition | undefined {
+    return this.workflow.phases.find(p => p.id === this.currentPhase);
+  }
+
+  /**
+   * Check if current phase has an invoke configuration (sub-workflow call)
+   */
+  checkInvoke(): InvokeResult {
+    const phase = this.getCurrentPhaseDefinition();
+    if (!phase?.invoke) {
+      return { shouldInvoke: false };
+    }
+    return {
+      shouldInvoke: true,
+      config: phase.invoke,
+      phase,
+    };
   }
 
   /**

@@ -16,6 +16,17 @@ export const IndexSchema = z.object({
 }).passthrough();
 
 /**
+ * Invoke sub-workflow configuration.
+ * Defines how to invoke a child workflow from a phase.
+ */
+export const InvokeSchema = z.object({
+  workflow: z.string().describe('ID workflow для вызова'),
+  input: z.record(z.string(), z.string()).optional().describe('Маппинг parent state → child input'),
+  output: z.record(z.string(), z.string()).optional().describe('Маппинг child result → parent state'),
+  on_complete: z.string().optional().describe('Фаза для перехода после завершения child'),
+}).strict();
+
+/**
  * Phase schema.
  * Represents a state in the workflow FSM.
  */
@@ -25,6 +36,7 @@ export const PhaseSchema = z.object({
   terminal: z.boolean().optional().describe('Финальная фаза'),
   on_enter: z.string().optional().describe('Хук при входе'),
   on_exit: z.string().optional().describe('Хук при выходе'),
+  invoke: InvokeSchema.optional().describe('Вызов дочернего workflow'),
 }).passthrough();
 
 /**
@@ -127,6 +139,28 @@ export const AgentSchema = z.object({
 });
 
 /**
+ * Nested workflow state.
+ * Represents a child workflow execution context.
+ */
+export const NestedStateSchema = z.object({
+  workflow: z.string().describe('ID child workflow'),
+  phase: z.string().describe('Current phase in child'),
+  status: z.enum(['running', 'waiting', 'halted', 'completed', 'failed']),
+  input: z.record(z.string(), z.any()).optional().describe('Input passed from parent'),
+  result: z.record(z.string(), z.any()).optional().describe('Result to return to parent'),
+  depth: z.number().int().describe('Nesting depth (1 = first child)'),
+}).passthrough();
+
+/**
+ * Call stack entry for tracking nested workflow invocations.
+ */
+export const CallStackEntrySchema = z.object({
+  workflow: z.string().describe('Parent workflow ID'),
+  phase: z.string().describe('Phase that invoked child'),
+  resume_to: z.string().optional().describe('Phase to resume after child completes'),
+}).strict();
+
+/**
  * State schema.
  * Represents the runtime state of the Arcanum protocol.
  */
@@ -142,4 +176,8 @@ export const StateSchema = z.object({
     status: z.string().optional(),
     agent: z.string().optional(),
   }).passthrough()).optional().describe('Список задач'),
+  // Nesting support
+  call_stack: z.array(CallStackEntrySchema).optional().describe('Stack of parent workflows'),
+  nested: NestedStateSchema.optional().describe('Current child workflow state'),
+  depth: z.number().int().default(0).describe('Current nesting depth'),
 }).passthrough();

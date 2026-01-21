@@ -1,0 +1,50 @@
+# Main workflow - parent that invokes child workflows
+id: main
+name: Main Workflow
+description: Parent workflow that demonstrates sub-workflow invocation
+
+phases:
+  - id: start
+    name: Start
+    
+  - id: run_subtask
+    name: Run Subtask
+    # Invoke the subtask workflow when entering this phase
+    invoke:
+      workflow: subtask
+      # Map parent state fields to child input
+      input:
+        task_name: current_task
+        context: project_context
+      # Map child result back to parent state
+      output:
+        subtask_result: result
+      # After child completes, transition to this phase
+      on_complete: review
+    
+  - id: review
+    name: Review Results
+    
+  - id: done
+    name: Done
+    terminal: true
+
+transitions:
+  - from: start
+    to: run_subtask
+    gate:
+      type: status
+      field: current_task
+      value: ready
+      
+  - from: review
+    to: run_subtask
+    gate:
+      type: expression
+      check: "tasks_remaining > 0"
+      
+  - from: review
+    to: done
+    gate:
+      type: expression
+      check: "tasks_remaining == 0"

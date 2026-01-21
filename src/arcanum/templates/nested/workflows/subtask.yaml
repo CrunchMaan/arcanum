@@ -1,0 +1,44 @@
+# Subtask workflow - child workflow invoked by parent
+id: subtask
+name: Subtask Workflow
+description: Child workflow for executing individual subtasks
+
+phases:
+  - id: init
+    name: Initialize
+    
+  - id: execute
+    name: Execute Task
+    
+  - id: validate
+    name: Validate Output
+    
+  - id: complete
+    name: Complete
+    terminal: true
+
+transitions:
+  - from: init
+    to: execute
+    # Auto-transition after initialization
+    
+  - from: execute
+    to: validate
+    gate:
+      type: status
+      field: execution_status
+      value: done
+      
+  - from: validate
+    to: execute
+    gate:
+      type: status
+      field: validation_status
+      value: retry
+      
+  - from: validate
+    to: complete
+    gate:
+      type: status
+      field: validation_status
+      value: passed

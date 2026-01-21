@@ -1,7 +1,7 @@
 import { ProtocolLoader, ProtocolDefinition } from '../protocol/loader';
-import { StateManager } from '../state/manager';
-import { FSMExecutor, TransitionResult } from './fsm';
-import type { ProtocolState, WorkflowDefinition } from '../types';
+import { StateManager, MAX_NESTING_DEPTH } from '../state/manager';
+import { FSMExecutor, TransitionResult, InvokeResult } from './fsm';
+import type { ProtocolState, WorkflowDefinition, InvokeConfig } from '../types';
 
 export type EngineStatus = 
   | 'uninitialized'
@@ -11,13 +11,21 @@ export type EngineStatus =
   | 'waiting'
   | 'halted'
   | 'completed'
-  | 'failed';
+  | 'failed'
+  | 'invoking'; // New status for child workflow invocation
 
 export interface EngineState {
   status: EngineStatus;
   workflow: string | null;
   phase: string | null;
+  depth: number;
   error?: string;
+}
+
+export interface InvokeContext {
+  childWorkflow: string;
+  input: Record<string, unknown>;
+  resumeTo?: string;
 }
 
 export class ArcanumEngine {
@@ -80,8 +88,20 @@ export class ArcanumEngine {
     
     const state = await this.stateManager!.getState();
     
+    // Check if current phase has invoke (sub-workflow call)
+    const invokeCheck = this.fsm!.checkInvoke();
+    if (invokeCheck.shouldInvoke && invokeCheck.config) {
+      // Handle sub-workflow invocation
+      return this.handleInvoke(invokeCheck.config, state);
+    }
+    
     // Check if we're at terminal phase
     if (this.fsm!.isTerminal()) {
+      // If nested, return to parent instead of completing
+      if ((state.depth ?? 0) > 0) {
+        return this.handleChildComplete(state);
+      }
+      
       this.status = 'completed';
       await this.stateManager!.updateStatus('completed');
       return null;
@@ -107,6 +127,86 @@ export class ArcanumEngine {
     }
     
     return result;
+  }
+
+  /**
+   * Handle sub-workflow invocation from current phase
+   */
+  private async handleInvoke(config: InvokeConfig, state: ProtocolState): Promise<TransitionResult> {
+    const from = state.phase;
+    
+    // Build input from parent state using input mapping
+    const input: Record<string, unknown> = {};
+    if (config.input) {
+      for (const [childKey, parentPath] of Object.entries(config.input)) {
+        input[childKey] = this.resolvePath(state, parentPath);
+      }
+    }
+    
+    // Determine resume phase after child completes
+    const resumeTo = config.on_complete;
+    
+    // Get child workflow and initial phase
+    const childWorkflow = this.getWorkflow(config.workflow);
+    const childInitialPhase = FSMExecutor.getInitialPhase(childWorkflow);
+    
+    // Invoke child workflow
+    const newState = await this.stateManager!.invokeChild(
+      config.workflow,
+      childInitialPhase,
+      input,
+      resumeTo
+    );
+    
+    // Update FSM to child workflow
+    this.fsm = new FSMExecutor(childWorkflow, this.projectDir, childInitialPhase);
+    this.status = 'running';
+    
+    return {
+      success: true,
+      from,
+      to: `${config.workflow}:${childInitialPhase}`,
+    };
+  }
+
+  /**
+   * Handle child workflow completion - return to parent
+   */
+  private async handleChildComplete(state: ProtocolState): Promise<TransitionResult> {
+    const from = `${state.workflow}:${state.phase}`;
+    
+    // Get child result (from nested state or state fields)
+    const result: Record<string, unknown> = {};
+    if (state.nested?.result) {
+      Object.assign(result, state.nested.result);
+    }
+    
+    // Return to parent
+    const newState = await this.stateManager!.returnToParent(result);
+    
+    // Update FSM to parent workflow
+    const parentWorkflow = this.getWorkflow(newState.workflow);
+    this.fsm = new FSMExecutor(parentWorkflow, this.projectDir, newState.phase);
+    this.status = 'running';
+    
+    return {
+      success: true,
+      from,
+      to: newState.phase,
+    };
+  }
+
+  /**
+   * Resolve a dot-path from state object
+   */
+  private resolvePath(state: ProtocolState, path: string): unknown {
+    const parts = path.split('.');
+    let value: unknown = state;
+    for (const part of parts) {
+      if (value == null || typeof value !== 'object') return undefined;
+      value = (value as Record<string, unknown>)[part];
+    }
+    return value;
   }
 
   /**
@@ -138,8 +238,42 @@ export class ArcanumEngine {
       status: this.status,
       workflow: state?.workflow ?? null,
       phase: state?.phase ?? null,
+      depth: state?.depth ?? 0,
       error: this.error
     };
+  }
+
+  /**
+   * Get current nesting depth
+   */
+  async getDepth(): Promise<number> {
+    if (!this.stateManager) return 0;
+    return this.stateManager.getDepth();
+  }
+
+  /**
+   * Check if currently in nested workflow
+   */
+  async isNested(): Promise<boolean> {
+    if (!this.stateManager) return false;
+    return this.stateManager.isNested();
+  }
+
+  /**
+   * Force return to parent (abort child workflow)
+   */
+  async abortChild(): Promise<void> {
+    this.ensureReady();
+    const isNested = await this.stateManager!.isNested();
+    if (!isNested) {
+      throw new Error('Cannot abort: not in nested workflow');
+    }
+    await this.stateManager!.returnToParent({ aborted: true });
+    
+    // Reinitialize FSM for parent workflow
+    const state = await this.stateManager!.getState();
+    const workflow = this.getWorkflow(state.workflow);
+    this.fsm = new FSMExecutor(workflow, this.projectDir, state.phase);
   }
 
   /**

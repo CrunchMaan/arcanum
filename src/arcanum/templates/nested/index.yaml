@@ -1,0 +1,11 @@
+# Nested Workflow Example Protocol
+# Demonstrates parent-child workflow invocation
+
+name: nested-example
+version: "1.0.0"
+description: Example protocol demonstrating workflow nesting with parent-child invocation
+
+default_workflow: main
+
+state:
+  format: single

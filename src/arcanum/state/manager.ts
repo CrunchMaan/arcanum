@@ -1,10 +1,13 @@
 import * as fs from 'fs/promises';
 import * as path from 'path';
 import { StateSchema } from '../protocol/schemas';
-import type { ProtocolState } from '../types';
+import type { ProtocolState, CallStackEntry, NestedState } from '../types';
 
 type StateFormat = 'single' | 'multi';
 type SystemStatus = 'running' | 'waiting' | 'halted' | 'completed' | 'failed';
+
+/** Maximum nesting depth to prevent infinite recursion */
+export const MAX_NESTING_DEPTH = 10;
 
 export class StateManager {
   private stateDir: string;
@@ -33,6 +36,9 @@ export class StateManager {
    * Save state atomically (write to temp, then rename)
    */
   async save(state: ProtocolState): Promise<void> {
+    // Ensure state directory exists
+    await this.ensureStateDir();
+    
     // Update timestamp before validation
     state.updated_at = new Date().toISOString();
 
@@ -82,10 +88,122 @@ export class StateManager {
       workflow: workflowId,
       phase: initialPhase,
       status: 'running',
-      updated_at: new Date().toISOString()
+      updated_at: new Date().toISOString(),
+      depth: 0,
+      call_stack: [],
     };
     await this.save(state);
     return state;
+  }
+
+  /**
+   * Push current workflow to call stack and start child workflow.
+   * Returns the updated state with child workflow active.
+   */
+  async invokeChild(
+    childWorkflowId: string,
+    childInitialPhase: string,
+    input: Record<string, unknown> = {},
+    resumeToPhase?: string
+  ): Promise<ProtocolState> {
+    const state = await this.load();
+    const currentDepth = state.depth ?? 0;
+
+    // Check depth limit
+    if (currentDepth >= MAX_NESTING_DEPTH) {
+      throw new Error(`Maximum nesting depth (${MAX_NESTING_DEPTH}) exceeded`);
+    }
+
+    // Push current workflow to call stack
+    const stackEntry: CallStackEntry = {
+      workflow: state.workflow,
+      phase: state.phase,
+      resume_to: resumeToPhase,
+    };
+    const callStack = [...(state.call_stack ?? []), stackEntry];
+
+    // Create nested state for tracking
+    const nested: NestedState = {
+      workflow: childWorkflowId,
+      phase: childInitialPhase,
+      status: 'running',
+      input,
+      depth: currentDepth + 1,
+    };
+
+    // Update state to child workflow
+    const newState: ProtocolState = {
+      ...state,
+      workflow: childWorkflowId,
+      phase: childInitialPhase,
+      status: 'running',
+      depth: currentDepth + 1,
+      call_stack: callStack,
+      nested,
+    };
+
+    await this.save(newState);
+    return newState;
+  }
+
+  /**
+   * Complete child workflow and return to parent.
+   * Returns the updated state with parent workflow resumed.
+   */
+  async returnToParent(result: Record<string, unknown> = {}): Promise<ProtocolState> {
+    const state = await this.load();
+    const callStack = state.call_stack ?? [];
+
+    if (callStack.length === 0) {
+      throw new Error('Cannot return to parent: not in nested workflow');
+    }
+
+    // Pop parent from call stack
+    const parent = callStack[callStack.length - 1];
+    const newCallStack = callStack.slice(0, -1);
+
+    // Determine resume phase
+    const resumePhase = parent.resume_to ?? parent.phase;
+
+    // Update state to parent workflow
+    const newState: ProtocolState = {
+      ...state,
+      workflow: parent.workflow,
+      phase: resumePhase,
+      status: 'running',
+      depth: (state.depth ?? 1) - 1,
+      call_stack: newCallStack,
+      nested: undefined,
+      // Store child result for parent access
+      _child_result: result,
+    };
+
+    await this.save(newState);
+    return newState;
+  }
+
+  /**
+   * Check if currently in a nested workflow
+   */
+  async isNested(): Promise<boolean> {
+    const state = await this.load();
+    return (state.depth ?? 0) > 0;
+  }
+
+  /**
+   * Get current nesting depth
+   */
+  async getDepth(): Promise<number> {
+    const state = await this.load();
+    return state.depth ?? 0;
+  }
+
+  /**
+   * Get the call stack (parent workflow history)
+   */
+  async getCallStack(): Promise<CallStackEntry[]> {
+    const state = await this.load();
+    return state.call_stack ?? [];
   }
 
   // Private helpers
