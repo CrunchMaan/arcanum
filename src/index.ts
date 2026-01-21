@@ -17,7 +17,7 @@ import {
 } from "./tools";
 import { loadPluginConfig, type TmuxConfig } from "./config";
 import { createBuiltinMcps } from "./mcp";
-import { createAutoUpdateCheckerHook, createPhaseReminderHook, createPostReadNudgeHook, createArcanumProtocolHook } from "./hooks";
+import { createAutoUpdateCheckerHook, createPhaseReminderHook, createPostReadNudgeHook, createArcanumProtocolHook, createArcanumWelcomeHook } from "./hooks";
 import { startTmuxCheck } from "./utils";
 import { log } from "./shared/logger";
 import { ArcanumEngine, ProtocolLoader, type ProtocolDefinition } from './arcanum';
@@ -94,6 +94,16 @@ const OpencodeArcanum: Plugin = async (ctx) => {
   const arcanumTools = arcanumEngine ? createArcanumTools(arcanumEngine) : {};
   const arcanumProtocolHook = arcanumEngine ? createArcanumProtocolHook(arcanumEngine) : null;
 
+  // Initialize Arcanum welcome hook if no protocol and not skipped
+  let arcanumWelcomeHook = null;
+  if (!arcanumEngine) {
+    const skipPath = path.join(ctx.directory, '.opencode', 'state', 'arcanum-skip');
+    const isSkipped = await fileExists(skipPath);
+    if (!isSkipped) {
+      arcanumWelcomeHook = createArcanumWelcomeHook();
+    }
+  }
+
   return {
     name: "opencode-arcanum",
 
@@ -153,6 +163,9 @@ const OpencodeArcanum: Plugin = async (ctx) => {
       await phaseReminderHook["experimental.chat.messages.transform"](input, output);
       if (arcanumProtocolHook) {
         await arcanumProtocolHook["experimental.chat.messages.transform"](input, output);
+      }
+      if (arcanumWelcomeHook) {
+        await arcanumWelcomeHook["experimental.chat.messages.transform"](input, output);
       }
     },
 

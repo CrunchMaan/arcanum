@@ -6,6 +6,7 @@ import { ArcanumEngine } from '../../engine/lifecycle';
 const BUNDLED_TEMPLATES: Record<string, string> = {
   ralph: 'ralph',
   wize: 'wize',
+  nested: path.join(__dirname, '../../templates/nested'),
 };
 
 /**
@@ -25,7 +26,7 @@ export async function initProtocol(cwd: string, templateName: string): Promise<n
   const templatePath = await findTemplate(templateName);
   if (!templatePath) {
     console.error(`Error: Template not found: ${templateName}`);
-    console.error('Available templates: ralph, wize');
+    console.error('Available templates: ralph, wize, nested');
     console.error('Or provide a path to a custom template directory.');
     return 1;
   }
