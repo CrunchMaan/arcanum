@@ -51,14 +51,19 @@ function deepMerge<T extends Record<string, unknown>>(base?: T, override?: T): T
   return result;
 }
 
+function getConfigFilename(): string {
+  const profile = process.env.OPENCODE_PROFILE;
+  if (profile === "arcanum") {
+    return "arcanum.json";
+  }
+  return "oh-my-opencode-slim.json";
+}
+
 export function loadPluginConfig(directory: string): PluginConfig {
-  const userConfigPath = path.join(
-    getUserConfigDir(),
-    "opencode",
-    "oh-my-opencode-slim.json"
-  );
-  
-  const projectConfigPath = path.join(directory, ".opencode", "oh-my-opencode-slim.json");
+  const filename = getConfigFilename();
+  const userConfigPath = path.join(getUserConfigDir(), "opencode", filename);
+
+  const projectConfigPath = path.join(directory, ".opencode", filename);
 
   let config: PluginConfig = loadConfigFromPath(userConfigPath) ?? {};
   
