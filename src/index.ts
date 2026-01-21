@@ -15,6 +15,7 @@ import {
   SkillMcpManager,
   createArcanumTools,
 } from "./tools";
+import { registerArcanumCommands } from "./tools/arcanum/commands";
 import { loadPluginConfig, type TmuxConfig } from "./config";
 import { createBuiltinMcps } from "./mcp";
 import { createAutoUpdateCheckerHook, createPhaseReminderHook, createPostReadNudgeHook, createArcanumProtocolHook, createArcanumWelcomeHook } from "./hooks";
@@ -93,6 +94,10 @@ const OpencodeArcanum: Plugin = async (ctx) => {
   // Initialize Arcanum tools and hook if protocol is active
   const arcanumTools = arcanumEngine ? createArcanumTools(arcanumEngine) : {};
   const arcanumProtocolHook = arcanumEngine ? createArcanumProtocolHook(arcanumEngine) : null;
+
+  if (arcanumEngine) {
+    registerArcanumCommands();
+  }
 
   // Initialize Arcanum welcome hook if no protocol and not skipped
   let arcanumWelcomeHook = null;
