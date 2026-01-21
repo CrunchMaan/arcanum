@@ -4,7 +4,7 @@ import { join } from "node:path"
 import type { ConfigMergeResult, DetectedConfig, InstallConfig } from "./types"
 import { DEFAULT_AGENT_SKILLS } from "../tools/skill/builtin"
 
-const PACKAGE_NAME = "oh-my-opencode-slim"
+const PACKAGE_NAME = "opencode-arcanum"
 
 function getConfigDir(): string {
   return process.env.XDG_CONFIG_HOME
@@ -21,7 +21,7 @@ function getConfigJsonc(): string {
 }
 
 function getLiteConfig(): string {
-  return join(getConfigDir(), "oh-my-opencode-slim.json")
+  return join(getConfigDir(), "opencode-arcanum.json")
 }
 
 function ensureConfigDir(): void {
@@ -178,9 +178,9 @@ export async function addPluginToOpenCodeConfig(): Promise<ConfigMergeResult> {
     const plugins = config.plugin ?? []
 
 
-    // Remove existing oh-my-opencode-slim entries
+    // Remove existing opencode-arcanum or legacy oh-my-opencode-slim entries
     const filteredPlugins = plugins.filter(
-      (p) => p !== PACKAGE_NAME && !p.startsWith(`${PACKAGE_NAME}@`)
+      (p) => p !== PACKAGE_NAME && !p.startsWith(`${PACKAGE_NAME}@`) && p !== "oh-my-opencode-slim" && !p.startsWith("oh-my-opencode-slim@")
     )
 
     // Add fresh entry

@@ -24,7 +24,7 @@ import { ArcanumEngine, ProtocolLoader, type ProtocolDefinition } from './arcanu
 import * as fs from 'fs/promises';
 import * as path from 'path';
 
-const OhMyOpenCodeLite: Plugin = async (ctx) => {
+const OpencodeArcanum: Plugin = async (ctx) => {
   const config = loadPluginConfig(ctx.directory);
 
   // Detect and initialize Arcanum protocol
@@ -95,7 +95,7 @@ const OhMyOpenCodeLite: Plugin = async (ctx) => {
   const arcanumProtocolHook = arcanumEngine ? createArcanumProtocolHook(arcanumEngine) : null;
 
   return {
-    name: "oh-my-opencode-slim",
+    name: "opencode-arcanum",
 
     agent: agents,
 
@@ -171,7 +171,7 @@ async function fileExists(p: string): Promise<boolean> {
   }
 }
 
-export default OhMyOpenCodeLite;
+export default OpencodeArcanum;
 
 export type { PluginConfig, AgentOverrideConfig, AgentName, McpName, TmuxConfig, TmuxLayout } from "./config";
 export type { RemoteMcpConfig } from "./mcp";

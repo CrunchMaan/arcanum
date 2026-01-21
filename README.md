@@ -1,8 +1,8 @@
 <div align="center">
 
-# oh-my-opencode-slim
+# opencode-arcanum
 
-**A lightweight, powerful agent orchestration plugin for OpenCode**
+**A lightweight, powerful agent orchestration plugin for OpenCode - Powered by Arcanum Engine**
 
 <img src="img/team.png" alt="The Pantheon - Agent Team" width="800">
 
@@ -10,13 +10,13 @@
 
 </div>
 
-> Slimmed-down fork of [oh-my-opencode](https://github.com/code-yeongyu/oh-my-opencode) - focused on core agent orchestration with low token consumption.
+> Lightweight agent orchestration plugin for OpenCode - a slimmed-down fork of oh-my-opencode, now powered by the Arcanum protocol engine.
 
 > **[Antigravity](https://antigravity.google) subscription recommended.** The pantheon is tuned for Antigravity's model routing. Other providers work, but you'll get the best experience with Antigravity.
 
 <div align="center">
 
-[![GitHub Stars](https://img.shields.io/github/stars/alvinunreal/oh-my-opencode-slim?style=for-the-badge&logo=github&logoColor=white)](https://github.com/alvinunreal/oh-my-opencode-slim)
+[![GitHub Stars](https://img.shields.io/github/stars/alvinunreal/opencode-arcanum?style=for-the-badge&logo=github&logoColor=white)](https://github.com/alvinunreal/opencode-arcanum)
 <a href="https://x.com/alvinunreal" target="_blank" rel="noopener noreferrer">
   <img src="https://img.shields.io/badge/%20%40alvinunreal-000000?style=for-the-badge&logo=x&logoColor=white" alt="@alvinunreal on X" />
 </a>
@@ -53,7 +53,7 @@
 - [⚙️ **Configuration**](#configuration)
   - [Files You Edit](#files-you-edit)
   - [OpenCode Config](#opencode-config-opencodejson)
-  - [Plugin Config](#plugin-config-oh-my-opencode-slimjson)
+  - [Plugin Config](#plugin-config-opencode-arcanumjson)
 - [🗑️ **Uninstallation**](#uninstallation)
 
 ---
@@ -65,13 +65,13 @@
 Run the interactive installer:
 
 ```bash
-bunx oh-my-opencode-slim install
+bunx opencode-arcanum install
 ```
 
 Or use non-interactive mode:
 
 ```bash
-bunx oh-my-opencode-slim install --no-tui --antigravity=yes --openai=yes --tmux=no
+bunx opencode-arcanum install --no-tui --antigravity=yes --openai=yes --tmux=no
 ```
 
 After installation, authenticate with your providers:
@@ -86,7 +86,7 @@ Once authenticated, run opencode and `ping all agents` to verify all agents resp
 
 <img src="img/ping.png" alt="Ping All Agents" width="800">
 
-> **💡 Tip: Models are fully customizable.** The installer sets sensible defaults, but you can assign *any* model to *any* agent. Edit `~/.config/opencode/oh-my-opencode-slim.json` to override models, adjust reasoning effort, or disable agents entirely. See [Configuration](#configuration) for details.
+> **💡 Tip: Models are fully customizable.** The installer sets sensible defaults, but you can assign *any* model to *any* agent. Edit `~/.config/opencode/opencode-arcanum.json` to override models, adjust reasoning effort, or disable agents entirely. See [Configuration](#configuration) for details.
 
 **Alternative: Ask any coding agent**
 
@@ -94,7 +94,7 @@ Paste this into Claude Code, AmpCode, Cursor, or any coding agent:
 
 ```
 Install and configure by following the instructions here:
-https://raw.githubusercontent.com/alvinunreal/oh-my-opencode-slim/refs/heads/master/README.md
+https://raw.githubusercontent.com/alvinunreal/opencode-arcanum/refs/heads/master/README.md
 ```
 
 ### For LLM Agents
@@ -102,7 +102,7 @@ https://raw.githubusercontent.com/alvinunreal/oh-my-opencode-slim/refs/heads/mas
 <details>
 <summary>Instructions for LLM Agents (click to expand)</summary>
 
-If you're an LLM Agent helping set up oh-my-opencode-slim, follow these steps.
+If you're an LLM Agent helping set up opencode-arcanum, follow these steps.
 
 ---
 
@@ -126,7 +126,7 @@ Ask these questions **one at a time**, waiting for responses:
 Help the user understand the tradeoffs:
 - Antigravity is the recommended path for Claude + Gemini routing.
 - OpenAI is optional; it enables `openai/` models.
-- If the user has **no providers**, the plugin still works using **OpenCode Zen** free models. They can switch to paid providers later by editing `~/.config/opencode/oh-my-opencode-slim.json`.
+- If the user has **no providers**, the plugin still works using **OpenCode Zen** free models. They can switch to paid providers later by editing `~/.config/opencode/opencode-arcanum.json`.
 
 ---
 
@@ -135,31 +135,31 @@ Help the user understand the tradeoffs:
 Based on answers, run:
 
 ```bash
-bunx oh-my-opencode-slim install --no-tui --antigravity=<yes|no> --openai=<yes|no>
+bunx opencode-arcanum install --no-tui --antigravity=<yes|no> --openai=<yes|no>
 ```
 
 **Examples:**
 ```bash
 # Antigravity + OpenAI
-bunx oh-my-opencode-slim install --no-tui --antigravity=yes --openai=yes --tmux=no
+bunx opencode-arcanum install --no-tui --antigravity=yes --openai=yes --tmux=no
 
 # OpenAI only
-bunx oh-my-opencode-slim install --no-tui --antigravity=no --openai=yes --tmux=no
+bunx opencode-arcanum install --no-tui --antigravity=no --openai=yes --tmux=no
 
 # No providers (Zen free models only)
-bunx oh-my-opencode-slim install --no-tui --antigravity=no --openai=no --tmux=no
+bunx opencode-arcanum install --no-tui --antigravity=no --openai=no --tmux=no
 ```
 
 The installer automatically:
 - Adds the plugin to `~/.config/opencode/opencode.json`
 - Adds `opencode-antigravity-auth` plugin (if Antigravity enabled)
 - Configures Google provider with model definitions
-- Generates agent model mappings in `~/.config/opencode/oh-my-opencode-slim.json`
+- Generates agent model mappings in `~/.config/opencode/opencode-arcanum.json`
 
 **Crucial Advice for the User:**
-- They can easily assign **different models to different agents** by editing `~/.config/opencode/oh-my-opencode-slim.json`.
+- They can easily assign **different models to different agents** by editing `~/.config/opencode/opencode-arcanum.json`.
 - If they add a new provider later, they just need to update this file.
-- Read generated  `~/.config/opencode/oh-my-opencode-slim.json` file and report the model configuration.
+- Read generated  `~/.config/opencode/opencode-arcanum.json` file and report the model configuration.
 
 ---
 
@@ -180,11 +180,11 @@ opencode auth login
 
 If the installer fails, check the expected config format:
 ```bash
-bunx oh-my-opencode-slim install --help
+bunx opencode-arcanum install --help
 ```
 
 Then manually create the config files at:
-- `~/.config/opencode/oh-my-opencode-slim.json`
+- `~/.config/opencode/opencode-arcanum.json`
 
 </details>
 
@@ -280,7 +280,7 @@ Code implementation, refactoring, testing, verification. *Execute the plan - no 
 
 ### Tmux Integration
 
-> ⚠️ **Known Issue:** When the server port is enabled, only one OpenCode instance can be opened at a time. We're tracking this in [issue #15](https://github.com/alvinunreal/oh-my-opencode-slim/issues/15), and there's an upstream PR to OpenCode: [opencode#9099](https://github.com/anomalyco/opencode/issues/9099).
+> ⚠️ **Known Issue:** When the server port is enabled, only one OpenCode instance can be opened at a time. We're tracking this in [issue #15](https://github.com/alvinunreal/opencode-arcanum/issues/15), and there's an upstream PR to OpenCode: [opencode#9099](https://github.com/anomalyco/opencode/issues/9099).
 
 <img src="img/tmux.png" alt="Tmux Integration" width="800">
 
@@ -306,7 +306,7 @@ Code implementation, refactoring, testing, verification. *Execute the plan - no 
 
 > ⚠️ **Temporary workaround:** Start OpenCode with `--port 4096` to enable tmux integration. This is required until the upstream issue is resolved.
 
-1. **Enable tmux integration** in `oh-my-opencode-slim.json` (see [Plugin Config](#plugin-config-oh-my-opencode-slimjson)).
+1. **Enable tmux integration** in `opencode-arcanum.json` (see [Plugin Config](#plugin-config-opencode-arcanumjson)).
 2. **Run OpenCode inside tmux with port 4096**:
    ```bash
    tmux
@@ -414,7 +414,7 @@ Use after major refactors or before finalizing PRs. Identifies unnecessary compl
 
 ### Customizing Agent Skills
 
-Override skills per-agent in your [Plugin Config](#plugin-config-oh-my-opencode-slimjson):
+Override skills per-agent in your [Plugin Config](#plugin-config-opencode-arcanumjson):
 
 ```json
 {
@@ -443,7 +443,7 @@ Built-in Model Context Protocol servers (enabled by default):
 
 ### Disabling MCPs
 
-You can disable specific MCP servers by adding them to the `disabled_mcps` array in your [Plugin Config](#plugin-config-oh-my-opencode-slimjson).
+You can disable specific MCP servers by adding them to the `disabled_mcps` array in your [Plugin Config](#plugin-config-opencode-arcanumjson).
 
 ---
 
@@ -454,12 +454,12 @@ You can disable specific MCP servers by adding them to the `disabled_mcps` array
 | File | Purpose |
 |------|---------|
 | `~/.config/opencode/opencode.json` | OpenCode core settings |
-| `~/.config/opencode/oh-my-opencode-slim.json` | Plugin settings (agents, tmux, MCPs) |
-| `.opencode/oh-my-opencode-slim.json` | Project-local plugin overrides (optional) |
+| `~/.config/opencode/opencode-arcanum.json` | Plugin settings (agents, tmux, MCPs) |
+| `.opencode/opencode-arcanum.json` | Project-local plugin overrides (optional) |
 
 ---
 
-### Plugin Config (`oh-my-opencode-slim.json`)
+### Plugin Config (`opencode-arcanum.json`)
 
 The installer generates this file based on your providers. You can manually customize it to mix and match models.
 
@@ -542,12 +542,12 @@ The installer generates this file based on your providers. You can manually cust
 
 1. **Remove the plugin from your OpenCode config**:
 
-   Edit `~/.config/opencode/opencode.json` and remove `"oh-my-opencode-slim"` from the `plugin` array.
+   Edit `~/.config/opencode/opencode.json` and remove `"opencode-arcanum"` from the `plugin` array.
 
 2. **Remove configuration files (optional)**:
    ```bash
-   rm -f ~/.config/opencode/oh-my-opencode-slim.json
-   rm -f .opencode/oh-my-opencode-slim.json
+   rm -f ~/.config/opencode/opencode-arcanum.json
+   rm -f .opencode/opencode-arcanum.json
    ```
 
 ---

@@ -34,7 +34,7 @@ const SYMBOLS = {
 
 function printHeader(isUpdate: boolean): void {
   console.log()
-  console.log(`${BOLD}oh-my-opencode-slim ${isUpdate ? "Update" : "Install"}${RESET}`)
+  console.log(`${BOLD}opencode-arcanum ${isUpdate ? "Update" : "Install"}${RESET}`)
   console.log("=".repeat(30))
   console.log()
 }
@@ -190,7 +190,7 @@ async function runInstall(config: InstallConfig): Promise<number> {
   const { ok } = await checkOpenCodeInstalled()
   if (!ok) return 1
 
-  printStep(step++, totalSteps, "Adding oh-my-opencode-slim plugin...")
+  printStep(step++, totalSteps, "Adding opencode-arcanum plugin...")
   const pluginResult = await addPluginToOpenCodeConfig()
   if (!handleStepResult(pluginResult, "Plugin added")) return 1
 
@@ -208,7 +208,7 @@ async function runInstall(config: InstallConfig): Promise<number> {
     if (!handleStepResult(providerResult, "Providers configured")) return 1
   }
 
-  printStep(step++, totalSteps, "Writing oh-my-opencode-slim configuration...")
+  printStep(step++, totalSteps, "Writing opencode-arcanum configuration...")
   const liteResult = writeLiteConfig(config)
   if (!handleStepResult(liteResult, "Config written")) return 1
 
@@ -263,7 +263,7 @@ export async function install(args: InstallArgs): Promise<number> {
         console.log(`  ${SYMBOLS.bullet} --${key}=<yes|no>`)
       }
       console.log()
-      printInfo("Usage: bunx oh-my-opencode-slim install --no-tui --antigravity=<yes|no> --openai=<yes|no> --tmux=<yes|no>")
+      printInfo("Usage: bunx opencode-arcanum install --no-tui --antigravity=<yes|no> --openai=<yes|no> --tmux=<yes|no>")
       console.log()
       return 1
     }

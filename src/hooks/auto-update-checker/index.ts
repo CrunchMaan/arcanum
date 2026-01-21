@@ -27,14 +27,14 @@ export function createAutoUpdateCheckerHook(ctx: PluginInput, options: AutoUpdat
 
         if (localDevVersion) {
           if (showStartupToast) {
-            showToast(ctx, `OMO-Slim ${displayVersion} (dev)`, "Running in local development mode.", "info")
+            showToast(ctx, `Arcanum ${displayVersion} (dev)`, "Running in local development mode.", "info")
           }
           log("[auto-update-checker] Local development mode")
           return
         }
 
         if (showStartupToast) {
-          showToast(ctx, `OMO-Slim ${displayVersion ?? "unknown"}`, "oh-my-opencode-slim is active.", "info")
+          showToast(ctx, `Arcanum ${displayVersion ?? "unknown"}`, "opencode-arcanum is active.", "info")
         }
 
         runBackgroundUpdateCheck(ctx, autoUpdate).catch(err => {
@@ -74,7 +74,7 @@ async function runBackgroundUpdateCheck(ctx: PluginInput, autoUpdate: boolean): 
   log(`[auto-update-checker] Update available (${channel}): ${currentVersion} → ${latestVersion}`)
 
   if (!autoUpdate) {
-    showToast(ctx, `OMO-Slim ${latestVersion}`, `v${latestVersion} available. Restart to apply.`, "info", 8000)
+    showToast(ctx, `Arcanum ${latestVersion}`, `v${latestVersion} available. Restart to apply.`, "info", 8000)
     log("[auto-update-checker] Auto-update disabled, notification only")
     return
   }
@@ -82,7 +82,7 @@ async function runBackgroundUpdateCheck(ctx: PluginInput, autoUpdate: boolean): 
   if (pluginInfo.isPinned) {
     const updated = updatePinnedVersion(pluginInfo.configPath, pluginInfo.entry, latestVersion)
     if (!updated) {
-      showToast(ctx, `OMO-Slim ${latestVersion}`, `v${latestVersion} available. Restart to apply.`, "info", 8000)
+      showToast(ctx, `Arcanum ${latestVersion}`, `v${latestVersion} available. Restart to apply.`, "info", 8000)
       log("[auto-update-checker] Failed to update pinned version in config")
       return
     }
@@ -94,10 +94,10 @@ async function runBackgroundUpdateCheck(ctx: PluginInput, autoUpdate: boolean): 
   const installSuccess = await runBunInstallSafe(ctx)
 
   if (installSuccess) {
-    showToast(ctx, "OMO-Slim Updated!", `v${currentVersion} → v${latestVersion}\nRestart OpenCode to apply.`, "success", 8000)
+    showToast(ctx, "Arcanum Updated!", `v${currentVersion} → v${latestVersion}\nRestart OpenCode to apply.`, "success", 8000)
     log(`[auto-update-checker] Update installed: ${currentVersion} → ${latestVersion}`)
   } else {
-    showToast(ctx, `OMO-Slim ${latestVersion}`, `v${latestVersion} available. Restart to apply.`, "info", 8000)
+    showToast(ctx, `Arcanum ${latestVersion}`, `v${latestVersion} available. Restart to apply.`, "info", 8000)
     log("[auto-update-checker] bun install failed; update not installed")
   }
 }

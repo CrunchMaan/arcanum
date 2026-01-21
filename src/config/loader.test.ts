@@ -37,7 +37,7 @@ describe("loadPluginConfig", () => {
     const projectConfigDir = path.join(projectDir, ".opencode")
     fs.mkdirSync(projectConfigDir, { recursive: true })
     fs.writeFileSync(
-      path.join(projectConfigDir, "oh-my-opencode-slim.json"),
+      path.join(projectConfigDir, "opencode-arcanum.json"),
       JSON.stringify({
         disabled_agents: ["explorer"],
         agents: {
@@ -58,14 +58,14 @@ describe("loadPluginConfig", () => {
     
     // Test 1: Invalid temperature (out of range)
     fs.writeFileSync(
-      path.join(projectConfigDir, "oh-my-opencode-slim.json"),
+      path.join(projectConfigDir, "opencode-arcanum.json"),
       JSON.stringify({ agents: { oracle: { temperature: 5 } } })
     )
     expect(loadPluginConfig(projectDir)).toEqual({})
 
     // Test 2: Malformed JSON
     fs.writeFileSync(
-      path.join(projectConfigDir, "oh-my-opencode-slim.json"),
+      path.join(projectConfigDir, "opencode-arcanum.json"),
       "{ invalid json }"
     )
     expect(loadPluginConfig(projectDir)).toEqual({})
@@ -96,7 +96,7 @@ describe("deepMerge behavior", () => {
     const userOpencodeDir = path.join(userConfigDir, "opencode")
     fs.mkdirSync(userOpencodeDir, { recursive: true })
     fs.writeFileSync(
-      path.join(userOpencodeDir, "oh-my-opencode-slim.json"),
+      path.join(userOpencodeDir, "opencode-arcanum.json"),
       JSON.stringify({
         agents: {
           oracle: { model: "user/oracle-model", temperature: 0.5 },
@@ -110,7 +110,7 @@ describe("deepMerge behavior", () => {
     const projectConfigDir = path.join(projectDir, ".opencode")
     fs.mkdirSync(projectConfigDir, { recursive: true })
     fs.writeFileSync(
-      path.join(projectConfigDir, "oh-my-opencode-slim.json"),
+      path.join(projectConfigDir, "opencode-arcanum.json"),
       JSON.stringify({
         agents: {
           oracle: { temperature: 0.8 }, // Override temperature only
@@ -136,7 +136,7 @@ describe("deepMerge behavior", () => {
     const userOpencodeDir = path.join(userConfigDir, "opencode")
     fs.mkdirSync(userOpencodeDir, { recursive: true })
     fs.writeFileSync(
-      path.join(userOpencodeDir, "oh-my-opencode-slim.json"),
+      path.join(userOpencodeDir, "opencode-arcanum.json"),
       JSON.stringify({
         tmux: {
           enabled: true,
@@ -150,7 +150,7 @@ describe("deepMerge behavior", () => {
     const projectConfigDir = path.join(projectDir, ".opencode")
     fs.mkdirSync(projectConfigDir, { recursive: true })
     fs.writeFileSync(
-      path.join(projectConfigDir, "oh-my-opencode-slim.json"),
+      path.join(projectConfigDir, "opencode-arcanum.json"),
       JSON.stringify({
         tmux: {
           enabled: false, // Override enabled
@@ -170,7 +170,7 @@ describe("deepMerge behavior", () => {
     const userOpencodeDir = path.join(userConfigDir, "opencode")
     fs.mkdirSync(userOpencodeDir, { recursive: true })
     fs.writeFileSync(
-      path.join(userOpencodeDir, "oh-my-opencode-slim.json"),
+      path.join(userOpencodeDir, "opencode-arcanum.json"),
       JSON.stringify({
         tmux: {
           enabled: true,
@@ -183,7 +183,7 @@ describe("deepMerge behavior", () => {
     const projectConfigDir = path.join(projectDir, ".opencode")
     fs.mkdirSync(projectConfigDir, { recursive: true })
     fs.writeFileSync(
-      path.join(projectConfigDir, "oh-my-opencode-slim.json"),
+      path.join(projectConfigDir, "opencode-arcanum.json"),
       JSON.stringify({
         agents: { oracle: { model: "test" } }, // No tmux override
       })
@@ -199,7 +199,7 @@ describe("deepMerge behavior", () => {
     const userOpencodeDir = path.join(userConfigDir, "opencode")
     fs.mkdirSync(userOpencodeDir, { recursive: true })
     fs.writeFileSync(
-      path.join(userOpencodeDir, "oh-my-opencode-slim.json"),
+      path.join(userOpencodeDir, "opencode-arcanum.json"),
       JSON.stringify({
         disabled_agents: ["explorer", "oracle"],
       })
@@ -209,7 +209,7 @@ describe("deepMerge behavior", () => {
     const projectConfigDir = path.join(projectDir, ".opencode")
     fs.mkdirSync(projectConfigDir, { recursive: true })
     fs.writeFileSync(
-      path.join(projectConfigDir, "oh-my-opencode-slim.json"),
+      path.join(projectConfigDir, "opencode-arcanum.json"),
       JSON.stringify({
         disabled_agents: ["oracle", "designer"], // oracle duplicated
       })
@@ -225,7 +225,7 @@ describe("deepMerge behavior", () => {
     const userOpencodeDir = path.join(userConfigDir, "opencode")
     fs.mkdirSync(userOpencodeDir, { recursive: true })
     fs.writeFileSync(
-      path.join(userOpencodeDir, "oh-my-opencode-slim.json"),
+      path.join(userOpencodeDir, "opencode-arcanum.json"),
       JSON.stringify({
         disabled_mcps: ["websearch"],
       })
@@ -235,7 +235,7 @@ describe("deepMerge behavior", () => {
     const projectConfigDir = path.join(projectDir, ".opencode")
     fs.mkdirSync(projectConfigDir, { recursive: true })
     fs.writeFileSync(
-      path.join(projectConfigDir, "oh-my-opencode-slim.json"),
+      path.join(projectConfigDir, "opencode-arcanum.json"),
       JSON.stringify({
         disabled_mcps: ["context7"],
       })
@@ -253,7 +253,7 @@ describe("deepMerge behavior", () => {
     const projectConfigDir = path.join(projectDir, ".opencode")
     fs.mkdirSync(projectConfigDir, { recursive: true })
     fs.writeFileSync(
-      path.join(projectConfigDir, "oh-my-opencode-slim.json"),
+      path.join(projectConfigDir, "opencode-arcanum.json"),
       JSON.stringify({
         agents: {
           oracle: { model: "project/model" },
@@ -269,7 +269,7 @@ describe("deepMerge behavior", () => {
     const userOpencodeDir = path.join(userConfigDir, "opencode")
     fs.mkdirSync(userOpencodeDir, { recursive: true })
     fs.writeFileSync(
-      path.join(userOpencodeDir, "oh-my-opencode-slim.json"),
+      path.join(userOpencodeDir, "opencode-arcanum.json"),
       JSON.stringify({
         agents: {
           oracle: { model: "user/model" },

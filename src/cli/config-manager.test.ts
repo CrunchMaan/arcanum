@@ -53,7 +53,7 @@ describe("stripJsonComments", () => {
   test("handles complex JSONC with mixed comments and trailing commas", () => {
     const json = `{
   // Configuration for the plugin
-  "plugin": ["oh-my-opencode-slim"],
+  "plugin": ["opencode-arcanum"],
   /* Provider settings
      with multiple lines */
   "provider": {
@@ -64,7 +64,7 @@ describe("stripJsonComments", () => {
 }`
     const result = JSON.parse(stripJsonComments(json))
     expect(result).toEqual({
-      plugin: ["oh-my-opencode-slim"],
+      plugin: ["opencode-arcanum"],
       provider: {
         google: {
           name: "Google",
@@ -136,7 +136,7 @@ describe("JSONC file handling", () => {
   test("stripJsonComments enables JSONC to be parsed as JSON", () => {
     const jsoncContent = `{
   // Single-line comment
-  "plugin": ["oh-my-opencode-slim"],
+  "plugin": ["opencode-arcanum"],
   /* Multi-line
      comment */
   "provider": {
@@ -149,7 +149,7 @@ describe("JSONC file handling", () => {
     const result = JSON.parse(stripJsonComments(jsoncContent))
     
     expect(result).toEqual({
-      plugin: ["oh-my-opencode-slim"],
+      plugin: ["opencode-arcanum"],
       provider: {
         google: {
           name: "Google",
@@ -162,7 +162,7 @@ describe("JSONC file handling", () => {
     const jsoncConfig = `{
   // OpenCode plugin configuration
   "plugin": [
-    "oh-my-opencode-slim"
+    "opencode-arcanum"
   ],
   
   /* Provider settings for Antigravity
@@ -182,7 +182,7 @@ describe("JSONC file handling", () => {
 
     const result = JSON.parse(stripJsonComments(jsoncConfig))
     
-    expect(result.plugin).toEqual(["oh-my-opencode-slim"])
+    expect(result.plugin).toEqual(["opencode-arcanum"])
     expect(result.provider.google.name).toBe("Google")
     expect(result.provider.google.models).toEqual(["claude-opus-4-5", "gemini-3-flash"])
     expect(result.server.port).toBe(4096)

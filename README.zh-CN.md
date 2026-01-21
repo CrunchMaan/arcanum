@@ -1,8 +1,8 @@
 <div align="center">
 
-# oh-my-opencode-slim
+# opencode-arcanum
 
-**适用于 OpenCode 的轻量级强大代理编排插件**
+**适用于 OpenCode 的轻量级强大代理编排插件 - 由 Arcanum 引擎驱动**
 
 <img src="img/team.png" alt="The Pantheon - Agent Team" width="600">
 
@@ -10,7 +10,7 @@
 
 </div>
 
-> 这是[oh-my-opencode](https://github.com/code-yeongyu/oh-my-opencode)的精简分支 -  - 专注于低令牌消耗的核心代理编排。  
+> 适用于 OpenCode 的轻量级代理编排插件 - oh-my-opencode 的精简分支，现由 Arcanum 协议引擎驱动。  
 > **推荐订阅 [Antigravity](https://antigravity.google)。** 万神殿经过 Antigravity 模型路由的调优。其他提供商也可用，但使用 Antigravity 能获得最佳体验。
 
 ---
@@ -44,7 +44,7 @@
 - [⚙️ **配置**](#configuration)
   - [需要编辑的文件](#files-you-edit)
   - [OpenCode 配置](#opencode-config-opencodejson)
-  - [插件配置](#plugin-config-oh-my-opencode-slimjson)
+  - [插件配置](#plugin-config-opencode-arcanumjson)
 - [🗑️ **卸载**](#uninstallation)
 
 ---
@@ -56,13 +56,13 @@
 运行交互式安装器：
 
 ```bash
-bunx oh-my-opencode-slim install
+bunx opencode-arcanum install
 ```
 
 或使用非交互模式：
 
 ```bash
-bunx oh-my-opencode-slim install --no-tui --antigravity=yes --openai=yes --tmux=no
+bunx opencode-arcanum install --no-tui --antigravity=yes --openai=yes --tmux=no
 ```
 
 安装完成后，使用提供商进行身份验证：
@@ -77,15 +77,15 @@ opencode auth login
 
 <img src="img/ping.png" alt="Ping All Agents" width="800">
 
-> **💡 小贴士：模型完全可自定义。** 安装器会设定合理的默认值，但你可以将 *任何* 模型分配给 *任何* 代理。编辑 `~/.config/opencode/oh-my-opencode-slim.json` 来覆盖模型、调整推理强度或完全禁用代理。详见[配置](#configuration)。
+> **💡 小贴士：模型完全可自定义。** 安装器会设定合理的默认值，但你可以将 *任何* 模型分配给 *任何* 代理。编辑 `~/.config/opencode/opencode-arcanum.json` 来覆盖模型、调整推理强度或完全禁用代理。详见[配置](#configuration)。
 
 **备用方式：询问任意编码代理**
 
-将以下内容粘贴到 Claude Code、AmpCode、Cursor 或任何编码代理：
+将以下内容粘贴到 Claude Code、AmpCode, Cursor 或任何编码代理：
 
 ```
 Install and configure by following the instructions here:
-https://raw.githubusercontent.com/alvinunreal/oh-my-opencode-slim/refs/heads/master/README.md
+https://raw.githubusercontent.com/alvinunreal/opencode-arcanum/refs/heads/master/README.md
 ```
 
 ### 给 LLM 代理的指南
@@ -93,7 +93,7 @@ https://raw.githubusercontent.com/alvinunreal/oh-my-opencode-slim/refs/heads/mas
 <details>
 <summary>LLM 代理的操作说明（点击展开）</summary>
 
-如果你是正在帮助设置 oh-my-opencode-slim 的 LLM 代理，请按以下步骤执行。
+如果你是正在帮助设置 opencode-arcanum 的 LLM 代理，请按以下步骤执行。
 
 ---
 
@@ -121,26 +121,26 @@ opencode --version
 根据回答运行：
 
 ```bash
-bunx oh-my-opencode-slim install --no-tui --antigravity=<yes|no> --openai=<yes|no>
+bunx opencode-arcanum install --no-tui --antigravity=<yes|no> --openai=<yes|no>
 ```
 
 **示例：**
 ```bash
 # Antigravity + OpenAI
-bunx oh-my-opencode-slim install --no-tui --antigravity=yes --openai=yes --tmux=no
+bunx opencode-arcanum install --no-tui --antigravity=yes --openai=yes --tmux=no
 
 # 仅 OpenAI
-bunx oh-my-opencode-slim install --no-tui --antigravity=no --openai=yes --tmux=no
+bunx opencode-arcanum install --no-tui --antigravity=no --openai=yes --tmux=no
 
 # 无提供商（仅使用 Zen 免费模型）
-bunx oh-my-opencode-slim install --no-tui --antigravity=no --openai=no --tmux=no
+bunx opencode-arcanum install --no-tui --antigravity=no --openai=no --tmux=no
 ```
 
 安装器会自动完成：
 - 将插件添加到 `~/.config/opencode/opencode.json`
 - (如启用 Antigravity) 添加 `opencode-antigravity-auth` 插件
 - 配置 Google 提供商的模型定义
-- 在 `~/.config/opencode/oh-my-opencode-slim.json` 中生成代理模型映射
+- 在 `~/.config/opencode/opencode-arcanum.json` 中生成代理模型映射
 
 ---
 
@@ -162,12 +162,12 @@ opencode auth login
 如果安装失败，确认配置格式：
 
 ```bash
-bunx oh-my-opencode-slim install --help
+bunx opencode-arcanum install --help
 ```
 
 然后手动创建配置文件：
 - `~/.config/opencode/opencode.json`
-- `~/.config/opencode/oh-my-opencode-slim.json`
+- `~/.config/opencode/opencode-arcanum.json`
 
 </details>
 
@@ -188,8 +188,8 @@ bunx oh-my-opencode-slim install --help
 1. **用户提示：** “重构认证逻辑并更新文档。”
 2. **编排者：** 创建 TODO 列表。
 3. **任务分配：**
-   - 启动 `@explorer` 后台任务查找所有与认证相关的文件。
-   - 启动 `@librarian` 查询认证库的最新文档。
+    - 启动 `@explorer` 后台任务查找所有与认证相关的文件。
+    - 启动 `@librarian` 查询认证库的最新文档。
 4. **集成：** 等待后台结果就绪后，编排者将任务交给 `@fixer` 高效实施重构。
 
 ---
@@ -298,7 +298,7 @@ bunx oh-my-opencode-slim install --help
 
 ### Tmux 集成
 
-> ⚠️ **已知问题：** 启用服务器端口时，每次只能打开一个 OpenCode 实例。我们在 [issue #15](https://github.com/alvinunreal/oh-my-opencode-slim/issues/15) 跟踪此问题，并向 OpenCode 提交了上游 PR：[opencode#9099](https://github.com/anomalyco/opencode/issues/9099)。
+> ⚠️ **已知问题：** 启用服务器端口时，每次只能打开一个 OpenCode 实例。我们在 [issue #15](https://github.com/alvinunreal/opencode-arcanum/issues/15) 跟踪此问题，并向 OpenCode 提交了上游 PR：[opencode#9099](https://github.com/anomalyco/opencode/issues/9099)。
 
 <img src="img/tmux.png" alt="Tmux Integration" width="800">
 
@@ -323,7 +323,7 @@ bunx oh-my-opencode-slim install --help
 #### 快速设置
 
 1. 在 `opencode.json` 中启用 OpenCode HTTP 服务（见 [OpenCode 配置](#opencode-config-opencodejson)）。
-2. 在 `oh-my-opencode-slim.json` 中启用 tmux 集成（见 [插件配置](#plugin-config-oh-my-opencode-slimjson)）。
+2. 在 `opencode-arcanum.json` 中启用 tmux 集成（见 [插件配置](#plugin-config-opencode-arcanumjson)）。
 3. 在 tmux 中运行 OpenCode：
    ```bash
    tmux
@@ -346,7 +346,7 @@ bunx oh-my-opencode-slim install --help
 
 ### 配额工具
 
-适用于 Antigravity 用户。随时请求代理 **“检查我的配额”** 或 **“显示状态”** 即可触发。
+随时请求代理 **“检查我的配额”** 或 **“显示状态”** 即可触发。
 
 <img src="img/quota.png" alt="Antigravity Quota" width="600">
 
@@ -431,7 +431,7 @@ bunx oh-my-opencode-slim install --help
 
 ### 自定义代理技能
 
-在你的[插件配置](#plugin-config-oh-my-opencode-slimjson)中覆盖每个代理的技能：
+在你的[插件配置](#plugin-config-opencode-arcanumjson)中覆盖每个代理的技能：
 
 ```json
 {
@@ -460,7 +460,7 @@ bunx oh-my-opencode-slim install --help
 
 ### 禁用 MCP
 
-你可以在[插件配置](#plugin-config-oh-my-opencode-slimjson)的 `disabled_mcps` 数组中添加要禁用的 MCP 服务器。
+你可以在[插件配置](#plugin-config-opencode-arcanumjson)的 `disabled_mcps` array 中添加要禁用的 MCP 服务器。
 
 ---
 
@@ -470,13 +470,13 @@ bunx oh-my-opencode-slim install --help
 
 | 文件 | 作用 |
 |------|---------|
-| `~/.config/opencode/opencode.json` | OpenCode 核心设置（如用于 tmux 的服务器端口） |
-| `~/.config/opencode/oh-my-opencode-slim.json` | 插件设置（代理、tmux、MCP） |
-| `.opencode/oh-my-opencode-slim.json` | 项目级插件覆盖（可选） |
+| `~/.config/opencode/opencode.json` | OpenCode 核心设置 |
+| `~/.config/opencode/opencode-arcanum.json` | 插件设置（代理、tmux、MCP） |
+| `.opencode/opencode-arcanum.json` | 项目级插件覆盖（可选） |
 
 ---
 
-### 插件配置 (`oh-my-opencode-slim.json`)
+### 插件配置 (`opencode-arcanum.json`)
 
 安装程序会根据你的提供商生成此文件。你可以手动自定义它来混合搭配模型。
 
@@ -559,12 +559,12 @@ bunx oh-my-opencode-slim install --help
 
 1. **从 OpenCode 配置中移除插件：**
 
-   编辑 `~/.config/opencode/opencode.json`，从 `plugin` 数组中删除 `"oh-my-opencode-slim"`。
+   编辑 `~/.config/opencode/opencode.json`，从 `plugin` 数组中删除 `"opencode-arcanum"`。
 
 2. **删除配置文件（可选）：**
    ```bash
-   rm -f ~/.config/opencode/oh-my-opencode-slim.json
-   rm -f .opencode/oh-my-opencode-slim.json
+   rm -f ~/.config/opencode/opencode-arcanum.json
+   rm -f .opencode/opencode-arcanum.json
    ```
 
 ---
@@ -578,3 +578,4 @@ bunx oh-my-opencode-slim install --help
 ## 许可证
 
 MIT
+

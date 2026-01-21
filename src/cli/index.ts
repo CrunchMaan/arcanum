@@ -30,9 +30,9 @@ function parseArgs(args: string[]): InstallArgs {
 
 function printHelp(): void {
   console.log(`
-oh-my-opencode-slim
+opencode-arcanum
 
-Usage: bunx oh-my-opencode-slim <command> [OPTIONS]
+Usage: bunx opencode-arcanum <command> [OPTIONS]
 
 Commands:
   install            Install and configure the plugin
@@ -55,9 +55,9 @@ Install Options:
   -h, --help             Show this help message
 
 Examples:
-  bunx oh-my-opencode-slim install
-  bunx oh-my-opencode-slim arcanum init ralph
-  bunx oh-my-opencode-slim arcanum status
+  bunx opencode-arcanum install
+  bunx opencode-arcanum arcanum init ralph
+  bunx opencode-arcanum arcanum status
 `)
 }
 

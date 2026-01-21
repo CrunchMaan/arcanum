@@ -1,4 +1,4 @@
-# Отчёт: расширение oh-my-opencode-slim для сложных workflow
+# Отчёт: расширение opencode-arcanum для сложных workflow
 
 ## Executive summary
 Проект уже содержит ядро для оркестрации (агенты, hooks, tools, background tasks, конфиг-загрузка), но workflow реализован только на уровне **подсказок** (см. `src/agents/orchestrator.ts`, `src/hooks/phase-reminder/index.ts`). Для сложных процессов нужна **явная модель workflow**, **персистентное состояние**, **машина состояний фаз**, а также **инфраструктура задач/спринтов**.  
@@ -160,7 +160,7 @@ src/docs/
 ### 5) Конфигурационная схема workflow
 **Изменения**
 - `src/config/schema.ts` — добавить `workflow` в `PluginConfigSchema`.
-- `src/config/loader.ts` — загрузка YAML/JSON (например, `oh-my-opencode-slim.workflow.yml`).
+- `src/config/loader.ts` — загрузка YAML/JSON (например, `opencode-arcanum.workflow.yml`).
 
 **Пример схемы (YAML)**
 ```yaml

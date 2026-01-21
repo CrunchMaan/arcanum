@@ -56,7 +56,7 @@ function getConfigFilename(): string {
   if (profile === "arcanum") {
     return "arcanum.json";
   }
-  return "oh-my-opencode-slim.json";
+  return "opencode-arcanum.json";
 }
 
 export function loadPluginConfig(directory: string): PluginConfig {

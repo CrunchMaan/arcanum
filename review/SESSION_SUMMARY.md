@@ -7,7 +7,7 @@
 
 ## Project Overview
 
-**Arcanum** is a declarative protocol execution engine for OpenCode plugin. It transforms `oh-my-opencode-slim` into a universal workflow orchestrator that can run different protocols (from simple task loops to complex sprint-based development workflows).
+**Arcanum** is a declarative protocol execution engine for OpenCode plugin. It transforms `opencode-arcanum` into a universal workflow orchestrator that can run different protocols (from simple task loops to complex sprint-based development workflows).
 
 ### Naming Convention
 - **Plugin**: Arcanum (the engine)
@@ -179,16 +179,16 @@ Tools policy: `inherit`, `add`, `replace`
 ```bash
 # Initialize a project with Ralph protocol
 cd your-project
-bunx oh-my-opencode-slim arcanum init ralph
+bunx opencode-arcanum arcanum init ralph
 
 # Check status
-bunx oh-my-opencode-slim arcanum status
+bunx opencode-arcanum arcanum status
 
 # Validate
-bunx oh-my-opencode-slim arcanum validate
+bunx opencode-arcanum arcanum validate
 
 # Run workflow step
-bunx oh-my-opencode-slim arcanum run
+bunx opencode-arcanum arcanum run
 ```
 
 ---
