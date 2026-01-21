@@ -61,11 +61,11 @@ export class StateManager {
   }
 
   /**
-   * Update phase and save
+   * Update step and save
    */
-  async updatePhase(phase: string): Promise<void> {
+  async updateStep(step: string): Promise<void> {
     const state = await this.load();
-    state.phase = phase;
+    state.step = step;
     await this.save(state);
   }
 
@@ -89,10 +89,10 @@ export class StateManager {
   /**
    * Initialize default state for a workflow
    */
-  async initialize(workflowId: string, initialPhase: string): Promise<ProtocolState> {
+  async initialize(workflowId: string, initialStep: string): Promise<ProtocolState> {
     const state: ProtocolState = {
       workflow: workflowId,
-      phase: initialPhase,
+      step: initialStep,
       status: 'running',
       updated_at: new Date().toISOString(),
       depth: 0,
@@ -108,9 +108,9 @@ export class StateManager {
    */
   async invokeChild(
     childWorkflowId: string,
-    childInitialPhase: string,
+    childInitialStep: string,
     input: Record<string, unknown> = {},
-    resumeToPhase?: string,
+    resumeToStep?: string,
     outputMapping?: Record<string, string>
   ): Promise<ProtocolState> {
     const state = await this.load();
@@ -124,8 +124,8 @@ export class StateManager {
     // Push current workflow to call stack
     const stackEntry: CallStackEntry = {
       workflow: state.workflow,
-      phase: state.phase,
-      resume_to: resumeToPhase,
+      step: state.step,
+      resume_to: resumeToStep,
       output_mapping: outputMapping,
     };
     const newCallStack = [...callStack, stackEntry];
@@ -133,7 +133,7 @@ export class StateManager {
     // Create nested state for tracking
     const nested: NestedState = {
       workflow: childWorkflowId,
-      phase: childInitialPhase,
+      step: childInitialStep,
       status: 'running',
       input,
       depth: newCallStack.length,
@@ -143,7 +143,7 @@ export class StateManager {
     const newState: ProtocolState = {
       ...state,
       workflow: childWorkflowId,
-      phase: childInitialPhase,
+      step: childInitialStep,
       status: 'running',
       depth: newCallStack.length,
       call_stack: newCallStack,
@@ -170,15 +170,15 @@ export class StateManager {
     const parent = callStack[callStack.length - 1];
     const newCallStack = callStack.slice(0, -1);
 
-    // Determine resume phase
-    const resumePhase = parent.resume_to ?? parent.phase;
+    // Determine resume step
+    const resumeStep = parent.resume_to ?? parent.step;
 
     // Update state to parent workflow
     const newState: ProtocolState = {
       ...state,
       ...result,
       workflow: parent.workflow,
-      phase: resumePhase,
+      step: resumeStep,
       status: 'running',
       depth: newCallStack.length,
       call_stack: newCallStack,

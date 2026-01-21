@@ -33,7 +33,7 @@ export async function showStatus(cwd: string): Promise<number> {
     console.log('');
     console.log('── Current State ──────────────────────');
     console.log(`Workflow:  ${state?.workflow ?? 'none'}`);
-    console.log(`Phase:     ${state?.phase ?? 'none'}`);
+    console.log(`Step:      ${state?.step ?? 'none'}`);
     console.log(`Status:    ${formatStatus(state?.status ?? 'unknown')}`);
     
     if (state?.updated_at) {

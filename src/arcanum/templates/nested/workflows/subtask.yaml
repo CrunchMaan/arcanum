@@ -3,7 +3,7 @@ id: subtask
 name: Subtask Workflow
 description: Child workflow for executing individual subtasks
 
-phases:
+steps:
   - id: init
     name: Initialize
     

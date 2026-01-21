@@ -26,7 +26,7 @@ export async function runWorkflow(cwd: string, workflowId?: string): Promise<num
     }
     
     console.log(`Workflow: ${state?.workflow}`);
-    console.log(`Phase:    ${state?.phase}`);
+    console.log(`Step:     ${state?.step}`);
     console.log(`Status:   ${state?.status}`);
     console.log('');
     
@@ -51,7 +51,7 @@ export async function runWorkflow(cwd: string, workflowId?: string): Promise<num
         console.log('\x1b[32m✓\x1b[0m Workflow completed!');
       } else if (newStatus.status === 'waiting') {
         console.log('\x1b[33m●\x1b[0m Waiting for gate conditions to be met.');
-        console.log('  No available transitions from current phase.');
+        console.log('  No available transitions from current step.');
       } else {
         console.log(`Status: ${newStatus.status}`);
       }
@@ -64,7 +64,7 @@ export async function runWorkflow(cwd: string, workflowId?: string): Promise<num
       const newState = await engine.getState();
       console.log('');
       console.log('New state:');
-      console.log(`  Phase:  ${newState?.phase}`);
+      console.log(`  Step:   ${newState?.step}`);
       console.log(`  Status: ${newState?.status}`);
     } else {
       console.log(`\x1b[31m✗\x1b[0m Transition failed: ${result.error}`);

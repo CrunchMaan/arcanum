@@ -1,4 +1,4 @@
-import type { WorkflowDefinition, TransitionDefinition as Transition, ProtocolState, GateDefinition as Gate, PhaseDefinition, InvokeConfig } from '../types';
+import type { WorkflowDefinition, TransitionDefinition as Transition, ProtocolState, GateDefinition as Gate, StepDefinition, InvokeConfig } from '../types';
 import { GateEvaluator } from './evaluator';
 
 export interface TransitionResult {
@@ -11,51 +11,51 @@ export interface TransitionResult {
 export interface InvokeResult {
   shouldInvoke: boolean;
   config?: InvokeConfig;
-  phase?: PhaseDefinition;
+  step?: StepDefinition;
 }
 
 export class FSMExecutor {
   private workflow: WorkflowDefinition;
   private evaluator: GateEvaluator;
-  private currentPhase: string;
+  private currentStep: string;
 
-  constructor(workflow: WorkflowDefinition, projectDir: string, currentPhase: string) {
+  constructor(workflow: WorkflowDefinition, projectDir: string, currentStep: string) {
     this.workflow = workflow;
     this.evaluator = new GateEvaluator(projectDir);
-    this.currentPhase = currentPhase;
+    this.currentStep = currentStep;
   }
 
-  getCurrentPhase(): string {
-    return this.currentPhase;
+  getCurrentStep(): string {
+    return this.currentStep;
   }
 
   /**
-   * Get the current phase definition
+   * Get the current step definition
    */
-  getCurrentPhaseDefinition(): PhaseDefinition | undefined {
-    return this.workflow.phases.find(p => p.id === this.currentPhase);
+  getCurrentStepDefinition(): StepDefinition | undefined {
+    return this.workflow.steps.find(s => s.id === this.currentStep);
   }
 
   /**
-   * Check if current phase has an invoke configuration (sub-workflow call)
+   * Check if current step has an invoke configuration (sub-workflow call)
    */
   checkInvoke(): InvokeResult {
-    const phase = this.getCurrentPhaseDefinition();
-    if (!phase?.invoke) {
+    const step = this.getCurrentStepDefinition();
+    if (!step?.invoke) {
       return { shouldInvoke: false };
     }
     return {
       shouldInvoke: true,
-      config: phase.invoke,
-      phase,
+      config: step.invoke,
+      step,
     };
   }
 
   /**
-   * Get all transitions from current phase
+   * Get all transitions from current step
    */
   getOutgoingTransitions(): Transition[] {
-    return this.workflow.transitions.filter(t => t.from === this.currentPhase);
+    return this.workflow.transitions.filter(t => t.from === this.currentStep);
   }
 
   /**
@@ -79,55 +79,55 @@ export class FSMExecutor {
    * Check if specific transition can be taken
    */
   async canTransition(to: string, state: ProtocolState): Promise<boolean> {
-    const transition = this.findTransition(this.currentPhase, to);
+    const transition = this.findTransition(this.currentStep, to);
     if (!transition) return false;
     return this.canTakeTransition(transition, state);
   }
 
   /**
-   * Execute transition to new phase
+   * Execute transition to new step
    */
   async transition(to: string, state: ProtocolState): Promise<TransitionResult> {
-    const transition = this.findTransition(this.currentPhase, to);
+    const transition = this.findTransition(this.currentStep, to);
     
     if (!transition) {
       return {
         success: false,
-        from: this.currentPhase,
+        from: this.currentStep,
         to,
-        error: `No transition from '${this.currentPhase}' to '${to}'`
+        error: `No transition from '${this.currentStep}' to '${to}'`
       };
     }
 
     if (!(await this.canTakeTransition(transition, state))) {
       return {
         success: false,
-        from: this.currentPhase,
+        from: this.currentStep,
         to,
         error: `Gate blocked transition to '${to}'`
       };
     }
 
-    const from = this.currentPhase;
-    this.currentPhase = to;
+    const from = this.currentStep;
+    this.currentStep = to;
     
     return { success: true, from, to };
   }
 
   /**
-   * Check if current phase is terminal
+   * Check if current step is terminal
    */
   isTerminal(): boolean {
-    const phase = this.workflow.phases.find(p => p.id === this.currentPhase);
-    return phase?.terminal === true;
+    const step = this.workflow.steps.find(s => s.id === this.currentStep);
+    return step?.terminal === true;
   }
 
   /**
-   * Get initial phase (first non-terminal phase)
+   * Get initial step (first non-terminal step)
    */
-  static getInitialPhase(workflow: WorkflowDefinition): string {
-    const first = workflow.phases[0];
-    if (!first) throw new Error('Workflow has no phases');
+  static getInitialStep(workflow: WorkflowDefinition): string {
+    const first = workflow.steps[0];
+    if (!first) throw new Error('Workflow has no steps');
     return first.id;
   }
 

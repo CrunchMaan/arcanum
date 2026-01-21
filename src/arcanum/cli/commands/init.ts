@@ -44,7 +44,7 @@ export async function initProtocol(cwd: string, templateName: string): Promise<n
     await engine.initialize();
     const state = await engine.getState();
     console.log(`  Workflow: ${state?.workflow}`);
-    console.log(`  Initial phase: ${state?.phase}`);
+    console.log(`  Initial step: ${state?.step}`);
   } catch (err) {
     console.warn('  Warning: Could not initialize state automatically.');
     console.warn(`  ${(err as Error).message}`);

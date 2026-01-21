@@ -9,6 +9,10 @@ export const IndexSchema = z.object({
   version: z.string().describe('Версия протокола (semver)'),
   description: z.string().optional().describe('Описание протокола'),
   default_workflow: z.string().describe('ID workflow по умолчанию'),
+  snippets: z.array(z.object({
+    id: z.string().describe('Уникальный ID сниппета'),
+    file: z.string().describe('Путь к файлу сниппета относительно snippets/'),
+  }).strict()).optional().describe('Список зарегистрированных сниппетов'),
   state: z.object({
     format: z.enum(['single', 'multi']).default('single').describe('single = один файл, multi = раздельные файлы'),
   }).default({ format: 'single' }),
@@ -17,23 +21,23 @@ export const IndexSchema = z.object({
 
 /**
  * Invoke sub-workflow configuration.
- * Defines how to invoke a child workflow from a phase.
+ * Defines how to invoke a child workflow from a step.
  */
 export const InvokeSchema = z.object({
   workflow: z.string().describe('ID workflow для вызова'),
   input: z.record(z.string(), z.string()).optional().describe('Маппинг parent state → child input'),
   output: z.record(z.string(), z.string()).optional().describe('Маппинг child result → parent state'),
-  on_complete: z.string().optional().describe('Фаза для перехода после завершения child'),
+  on_complete: z.string().optional().describe('Шаг для перехода после завершения child'),
 }).strict();
 
 /**
- * Phase schema.
+ * Step schema.
  * Represents a state in the workflow FSM.
  */
-export const PhaseSchema = z.object({
-  id: z.string().describe('ID фазы'),
-  name: z.string().optional().describe('Имя фазы'),
-  terminal: z.boolean().optional().describe('Финальная фаза'),
+export const StepSchema = z.object({
+  id: z.string().describe('ID шага'),
+  name: z.string().optional().describe('Имя шага'),
+  terminal: z.boolean().optional().describe('Финальный шаг'),
   on_enter: z.string().optional().describe('Хук при входе'),
   on_exit: z.string().optional().describe('Хук при выходе'),
   invoke: InvokeSchema.optional().describe('Вызов дочернего workflow'),
@@ -41,7 +45,7 @@ export const PhaseSchema = z.object({
 
 /**
  * Gate schema.
- * Defines conditions for transitions between phases.
+ * Defines conditions for transitions between steps.
  */
 export const GateSchema = z.object({
   type: z.enum(['manual', 'criteria', 'expression', 'file_exists', 'status']).describe('Тип gate'),
@@ -76,25 +80,25 @@ export const GateSchema = z.object({
 
 /**
  * Transition schema.
- * Defines movement between phases in the workflow FSM.
+ * Defines movement between steps in the workflow FSM.
  */
 export const TransitionSchema = z.object({
-  from: z.string().describe('Исходная фаза'),
-  to: z.string().describe('Целевая фаза'),
+  from: z.string().describe('Исходный шаг'),
+  to: z.string().describe('Целевой шаг'),
   priority: z.number().int().optional().describe('Приоритет перехода'),
   gate: z.union([z.string(), GateSchema]).optional().describe('Условие перехода (inline)'),
 }).passthrough();
 
 /**
  * Workflow schema.
- * Defines the structure of a process with phases and transitions.
+ * Defines the structure of a process with steps and transitions.
  */
 export const WorkflowSchema = z.object({
   id: z.string().describe('ID workflow'),
   name: z.string().optional().describe('Читаемое имя workflow'),
   description: z.string().optional().describe('Описание workflow'),
   include: z.union([z.string(), z.array(z.string())]).optional().describe('Композиция других workflow'),
-  phases: z.array(PhaseSchema).describe('Список фаз FSM'),
+  steps: z.array(StepSchema).describe('Список шагов FSM'),
   transitions: z.array(TransitionSchema).describe('Переходы FSM'),
 }).strict();
 
@@ -144,7 +148,7 @@ export const AgentSchema = z.object({
  */
 export const NestedStateSchema = z.object({
   workflow: z.string().describe('ID child workflow'),
-  phase: z.string().describe('Current phase in child'),
+  step: z.string().describe('Current step in child'),
   status: z.enum(['running', 'waiting', 'halted', 'completed', 'failed']),
   input: z.record(z.string(), z.any()).optional().describe('Input passed from parent'),
   result: z.record(z.string(), z.any()).optional().describe('Result to return to parent'),
@@ -156,8 +160,8 @@ export const NestedStateSchema = z.object({
  */
 export const CallStackEntrySchema = z.object({
   workflow: z.string().describe('Parent workflow ID'),
-  phase: z.string().describe('Phase that invoked child'),
-  resume_to: z.string().optional().describe('Phase to resume after child completes'),
+  step: z.string().describe('Step that invoked child'),
+  resume_to: z.string().optional().describe('Step to resume after child completes'),
   output_mapping: z.record(z.string(), z.string()).optional().describe('Маппинг child result → parent state'),
 }).strict();
 
@@ -167,7 +171,7 @@ export const CallStackEntrySchema = z.object({
  */
 export const StateSchema = z.object({
   workflow: z.string().describe('ID активного workflow'),
-  phase: z.string().describe('Текущая фаза'),
+  step: z.string().describe('Текущий шаг'),
   status: z.enum(['running', 'waiting', 'halted', 'completed', 'failed']).describe('Состояние выполнения'),
   updated_at: z.string().datetime().optional().describe('Последнее обновление'),
   sprint_id: z.string().optional().describe('ID активного спринта'),

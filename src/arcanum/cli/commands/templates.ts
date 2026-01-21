@@ -14,7 +14,7 @@ export async function listTemplates(): Promise<number> {
   // Bundled templates
   console.log('Bundled:');
   console.log('  ralph    Simple task loop workflow');
-  console.log('  wize     Multi-phase sprint workflow with agents');
+  console.log('  wize     Multi-step sprint workflow with agents');
   console.log('');
   
   // User templates

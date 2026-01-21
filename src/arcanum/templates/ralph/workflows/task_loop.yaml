@@ -3,7 +3,7 @@ id: task_loop
 name: "Ralph Task Loop"
 description: "Decompose задачи → циклическая работа → завершение или пауза"
 
-phases:
+steps:
   - id: decompose
     name: "Decompose"
 

@@ -24,7 +24,7 @@ describe('Workflow Nesting', () => {
       expect(state.depth).toBe(0);
       expect(state.call_stack).toEqual([]);
       expect(state.workflow).toBe('main');
-      expect(state.phase).toBe('start');
+      expect(state.step).toBe('start');
     });
 
     it('should invoke child workflow and push parent to call stack', async () => {
@@ -38,12 +38,12 @@ describe('Workflow Nesting', () => {
       );
       
       expect(newState.workflow).toBe('subtask');
-      expect(newState.phase).toBe('init');
+      expect(newState.step).toBe('init');
       expect(newState.depth).toBe(1);
       expect(newState.call_stack).toHaveLength(1);
       expect(newState.call_stack![0]).toEqual({
         workflow: 'main',
-        phase: 'run_subtask',
+        step: 'run_subtask',
         resume_to: 'review',
       });
       expect(newState.nested?.input).toEqual({ task_name: 'test-task' });
@@ -56,7 +56,7 @@ describe('Workflow Nesting', () => {
       const returnedState = await stateManager.returnToParent({ result: 'success' });
       
       expect(returnedState.workflow).toBe('main');
-      expect(returnedState.phase).toBe('review'); // resume_to phase
+      expect(returnedState.step).toBe('review'); // resume_to step
       expect(returnedState.depth).toBe(0);
       expect(returnedState.call_stack).toEqual([]);
       // Results are now merged directly into state
@@ -64,7 +64,7 @@ describe('Workflow Nesting', () => {
     });
 
     it('should support multiple nesting levels', async () => {
-      await stateManager.initialize('main', 'phase1');
+      await stateManager.initialize('main', 'step1');
       
       // Nest level 1
       await stateManager.invokeChild('child1', 'init', {});
@@ -91,7 +91,7 @@ describe('Workflow Nesting', () => {
     });
 
     it('should enforce maximum nesting depth', async () => {
-      await stateManager.initialize('main', 'phase1');
+      await stateManager.initialize('main', 'step1');
       
       // Nest up to MAX_NESTING_DEPTH
       for (let i = 0; i < MAX_NESTING_DEPTH; i++) {
@@ -135,7 +135,7 @@ describe('Workflow Nesting', () => {
     });
 
     it('should preserve parent state in call stack', async () => {
-      await stateManager.initialize('main', 'complex_phase');
+      await stateManager.initialize('main', 'complex_step');
       const initialState = await stateManager.getState();
       
       // Add some custom state
@@ -145,13 +145,13 @@ describe('Workflow Nesting', () => {
       });
       
       // Invoke child
-      await stateManager.invokeChild('child', 'init', {}, 'next_phase');
+      await stateManager.invokeChild('child', 'init', {}, 'next_step');
       
       // Return to parent
       await stateManager.returnToParent({});
       
       const finalState = await stateManager.getState();
-      expect(finalState.phase).toBe('next_phase'); // resume_to worked
+      expect(finalState.step).toBe('next_step'); // resume_to worked
     });
   });
 
@@ -163,7 +163,7 @@ describe('Workflow Nesting', () => {
     });
 
     it('should return correct call stack for nested workflows', async () => {
-      await stateManager.initialize('main', 'phase1');
+      await stateManager.initialize('main', 'step1');
       await stateManager.invokeChild('child1', 'init', {}, 'resume1');
       await stateManager.invokeChild('child2', 'init', {}, 'resume2');
       
@@ -172,12 +172,12 @@ describe('Workflow Nesting', () => {
       expect(stack).toHaveLength(2);
       expect(stack[0]).toEqual({
         workflow: 'main',
-        phase: 'phase1',
+        step: 'step1',
         resume_to: 'resume1',
       });
       expect(stack[1]).toEqual({
         workflow: 'child1',
-        phase: 'init',
+        step: 'init',
         resume_to: 'resume2',
       });
     });

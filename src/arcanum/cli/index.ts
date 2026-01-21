@@ -3,6 +3,7 @@ import { ArcanumEngine } from '../engine/lifecycle';
 import { ProtocolLoader } from '../protocol/loader';
 import { initProtocol } from './commands/init';
 import { showStatus } from './commands/status';
+import { showHistory } from './commands/history';
 import { validateProtocol } from './commands/validate';
 import { runWorkflow } from './commands/run';
 import { resetState } from './commands/reset';
@@ -25,6 +26,12 @@ export async function runArcanumCli(args: string[]): Promise<number> {
       
       case 'status':
         return await showStatus(cwd);
+      
+      case 'history': {
+        const limitIdx = restArgs.indexOf('--limit');
+        const limit = limitIdx !== -1 ? parseInt(restArgs[limitIdx + 1], 10) : 20;
+        return await showHistory(cwd, { limit });
+      }
       
       case 'validate':
         return await validateProtocol(cwd);
@@ -64,6 +71,7 @@ Usage: arcanum <command> [options]
 Commands:
   init [template]    Initialize protocol from template (default: ralph)
   status             Show current workflow state
+  history [--limit N] Show transition history
   validate           Validate protocol against schemas
   run [workflow]     Execute workflow step
   reset              Reset state to initial

@@ -31,7 +31,7 @@ describe('ArcanumEngine', () => {
     const status = engine.getStatus();
     expect(status.status).toBe('ready');
     expect(status.workflow).toBe('task_loop');
-    expect(status.phase).toBe('decompose');
+    expect(status.step).toBe('decompose');
   });
 
   it('should create initial state when missing', async () => {
@@ -48,17 +48,17 @@ describe('ArcanumEngine', () => {
     const engine = new ArcanumEngine(tempDir);
     await engine.initialize();
     
-    // Ralph's 'decompose' phase has two transitions:
+    // Ralph's 'decompose' step has two transitions:
     // 1. to 'work_loop' if state.tasks.length > 0
     // 2. to 'done' if tasks is empty/missing
     
     // Step with no tasks -> should go to 'done'
     const result = await engine.step();
     expect(result?.to).toBe('done');
-    expect(engine.getStatus().phase).toBe('done');
+    expect(engine.getStatus().step).toBe('done');
     expect(engine.getStatus().status).toBe('running');
 
-    // Check terminal phase handling in next step
+    // Check terminal step handling in next step
     const finalStep = await engine.step();
     expect(finalStep).toBeNull();
     expect(engine.getStatus().status).toBe('completed');
@@ -74,7 +74,7 @@ describe('ArcanumEngine', () => {
     
     const result = await engine.step();
     expect(result?.to).toBe('work_loop');
-    expect(engine.getStatus().phase).toBe('work_loop');
+    expect(engine.getStatus().step).toBe('work_loop');
   });
 
   it('should halt and resume', async () => {

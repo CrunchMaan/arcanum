@@ -3,7 +3,7 @@ id: sprint_exec
 name: "Sprint Execution"
 description: "Wize sprint lifecycle"
 
-phases:
+steps:
   - id: new
     name: "Sprint Draft"
 

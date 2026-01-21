@@ -10,7 +10,7 @@ export interface StateUpdate {
 export interface ParsedResponse {
   /** Requested state updates */
   stateUpdates: StateUpdate[];
-  /** Requested phase transition */
+  /** Requested step transition */
   transitionTo?: string;
   /** Task completions */
   completedTasks: string[];
@@ -25,7 +25,7 @@ const PATTERNS = {
   // [STATE:field=value] or [STATE:path.to.field=value]
   stateUpdate: /\[STATE:([a-zA-Z0-9_.[\]]+)=([^\]]+)\]/g,
   
-  // [TRANSITION:phase_name]
+  // [TRANSITION:step_name]
   transition: /\[TRANSITION:([a-zA-Z0-9_-]+)\]/,
   
   // [TASK_DONE:task_id] or [COMPLETE:task_id]

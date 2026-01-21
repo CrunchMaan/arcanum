@@ -39,29 +39,29 @@ export async function validateProtocol(cwd: string): Promise<number> {
     console.log('');
     console.log('Checking workflows...');
     for (const [id, workflow] of protocol.workflows) {
-      // Check phases exist
-      if (!workflow.phases || workflow.phases.length === 0) {
-        errors.push(`Workflow '${id}': no phases defined`);
+      // Check steps exist
+      if (!workflow.steps || workflow.steps.length === 0) {
+        errors.push(`Workflow '${id}': no steps defined`);
       }
       
-      // Check transitions reference valid phases
-      const phaseIds = new Set(workflow.phases.map(p => p.id));
+      // Check transitions reference valid steps
+      const stepIds = new Set(workflow.steps.map(s => s.id));
       for (const transition of workflow.transitions) {
-        if (!phaseIds.has(transition.from)) {
-          errors.push(`Workflow '${id}': transition from unknown phase '${transition.from}'`);
+        if (!stepIds.has(transition.from)) {
+          errors.push(`Workflow '${id}': transition from unknown step '${transition.from}'`);
         }
-        if (!phaseIds.has(transition.to)) {
-          errors.push(`Workflow '${id}': transition to unknown phase '${transition.to}'`);
+        if (!stepIds.has(transition.to)) {
+          errors.push(`Workflow '${id}': transition to unknown step '${transition.to}'`);
         }
       }
       
-      // Check terminal phases
-      const hasTerminal = workflow.phases.some(p => p.terminal);
+      // Check terminal steps
+      const hasTerminal = workflow.steps.some(s => s.terminal);
       if (!hasTerminal) {
-        warnings.push(`Workflow '${id}': no terminal phase defined`);
+        warnings.push(`Workflow '${id}': no terminal step defined`);
       }
       
-      console.log(`\x1b[32m✓\x1b[0m Workflow: ${id} (${workflow.phases.length} phases, ${workflow.transitions.length} transitions)`);
+      console.log(`\x1b[32m✓\x1b[0m Workflow: ${id} (${workflow.steps.length} steps, ${workflow.transitions.length} transitions)`);
     }
     
     // 4. Validate agents

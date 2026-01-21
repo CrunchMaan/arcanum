@@ -3,13 +3,13 @@ id: main
 name: Main Workflow
 description: Parent workflow that demonstrates sub-workflow invocation
 
-phases:
+steps:
   - id: start
     name: Start
     
   - id: run_subtask
     name: Run Subtask
-    # Invoke the subtask workflow when entering this phase
+    # Invoke the subtask workflow when entering this step
     invoke:
       workflow: subtask
       # Map parent state fields to child input
@@ -19,7 +19,7 @@ phases:
       # Map child result back to parent state
       output:
         subtask_result: result
-      # After child completes, transition to this phase
+      # After child completes, transition to this step
       on_complete: review
     
   - id: review

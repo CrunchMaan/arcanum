@@ -2,12 +2,13 @@ import { parse as parseYaml } from 'yaml';
 import * as fs from 'fs/promises';
 import * as path from 'path';
 import { IndexSchema, WorkflowSchema, AgentSchema } from './schemas';
-import { IndexConfig, WorkflowDefinition, AgentDefinition } from '../types';
+import { IndexConfig, WorkflowDefinition, AgentDefinition, StepDefinition, SnippetDefinition } from '../types';
 
 export interface ProtocolDefinition {
   index: IndexConfig;
   workflows: Map<string, WorkflowDefinition>;
   agents: Map<string, AgentDefinition>;
+  snippets: Map<string, SnippetDefinition>;
   rules: Map<string, unknown>;
   protocolDir: string;
 }
@@ -36,6 +37,14 @@ export class ProtocolLoader {
     
     // 5. Load rules from rules/ folder (optional, opaque in MVP)
     const rules = await this.loadRules(path.join(protocolDir, 'rules'));
+
+    // 6. Map snippets from index
+    const snippets = new Map<string, SnippetDefinition>();
+    if (index.snippets) {
+      for (const snippet of index.snippets) {
+        snippets.set(snippet.id, snippet);
+      }
+    }
     
     // Validate default_workflow exists
     if (!workflows.has(index.default_workflow)) {
@@ -45,7 +54,7 @@ export class ProtocolLoader {
       );
     }
     
-    return { index, workflows, agents, rules, protocolDir };
+    return { index, workflows, agents, snippets, rules, protocolDir };
   }
 
   async loadIndex(filePath: string): Promise<IndexConfig> {

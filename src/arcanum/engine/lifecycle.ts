@@ -1,7 +1,9 @@
 import { ProtocolLoader, ProtocolDefinition } from '../protocol/loader';
 import { StateManager, MAX_NESTING_DEPTH } from '../state/manager';
+import { TransitionLog } from '../state/transition-log';
 import { FSMExecutor, TransitionResult, InvokeResult } from './fsm';
 import type { ProtocolState, WorkflowDefinition, InvokeConfig } from '../types';
+import { SnippetLoader, SnippetExecutor, SnippetResult } from '../snippets';
 
 export type EngineStatus = 
   | 'uninitialized'
@@ -17,7 +19,7 @@ export type EngineStatus =
 export interface EngineState {
   status: EngineStatus;
   workflow: string | null;
-  phase: string | null;
+  step: string | null;
   depth: number;
   error?: string;
 }
@@ -32,14 +34,18 @@ export class ArcanumEngine {
   private projectDir: string;
   private loader: ProtocolLoader;
   private stateManager: StateManager | null = null;
+  private transitionLog: TransitionLog;
   private protocol: ProtocolDefinition | null = null;
   private fsm: FSMExecutor | null = null;
+  private snippetLoader: SnippetLoader | null = null;
+  private snippetExecutor: SnippetExecutor | null = null;
   private status: EngineStatus = 'uninitialized';
   private error?: string;
 
   constructor(projectDir: string) {
     this.projectDir = projectDir;
     this.loader = new ProtocolLoader();
+    this.transitionLog = new TransitionLog(projectDir);
   }
 
   /**
@@ -52,7 +58,11 @@ export class ArcanumEngine {
       // 1. Load protocol definition
       this.protocol = await this.loader.load(this.projectDir);
       
-      // 2. Initialize state manager with config from index
+      // 2. Initialize snippet system
+      this.snippetLoader = new SnippetLoader(this.projectDir, this.protocol.snippets);
+      this.snippetExecutor = new SnippetExecutor(this.snippetLoader, this.projectDir);
+      
+      // 3. Initialize state manager with config from index
       const stateFormat = this.protocol.index.state?.format ?? 'single';
       this.stateManager = new StateManager(this.projectDir, { format: stateFormat });
       
@@ -63,13 +73,19 @@ export class ArcanumEngine {
       } catch {
         // No existing state - initialize with default workflow
         const defaultWorkflow = this.getDefaultWorkflow();
-        const initialPhase = FSMExecutor.getInitialPhase(defaultWorkflow);
-        state = await this.stateManager.initialize(defaultWorkflow.id, initialPhase);
+        const initialStep = FSMExecutor.getInitialStep(defaultWorkflow);
+        state = await this.stateManager.initialize(defaultWorkflow.id, initialStep);
+        
+        // Create FSM executor for current workflow (needed for executeStepHook)
+        this.fsm = new FSMExecutor(defaultWorkflow, this.projectDir, initialStep);
+
+        // Execute on_enter for initial step
+        await this.executeStepHook('on_enter', initialStep);
       }
       
-      // 4. Create FSM executor for current workflow
+      // 4. Create FSM executor for current workflow (if not already created above or if state was loaded)
       const workflow = this.getWorkflow(state.workflow);
-      this.fsm = new FSMExecutor(workflow, this.projectDir, state.phase);
+      this.fsm = new FSMExecutor(workflow, this.projectDir, state.step);
       
       this.status = 'ready';
     } catch (err) {
@@ -91,11 +107,11 @@ export class ArcanumEngine {
     // Check for child result first - if present, we just resumed from child
     if ((state as any)._child_result) {
       // Clear the flag and proceed to transitions
-      // This prevents re-invoking the child workflow if we resumed back to the same phase
+      // This prevents re-invoking the child workflow if we resumed back to the same step
       delete (state as any)._child_result;
       await this.stateManager!.save(state);
     } else {
-      // Check if current phase has invoke (sub-workflow call)
+      // Check if current step has invoke (sub-workflow call)
       const invokeCheck = this.fsm!.checkInvoke();
       if (invokeCheck.shouldInvoke && invokeCheck.config) {
         // Handle sub-workflow invocation
@@ -103,7 +119,7 @@ export class ArcanumEngine {
       }
     }
     
-    // Check if we're at terminal phase
+    // Check if we're at terminal step
     if (this.fsm!.isTerminal()) {
       // If nested, return to parent instead of completing
       if ((state.depth ?? 0) > 0) {
@@ -127,21 +143,76 @@ export class ArcanumEngine {
     
     // Take first available transition (highest priority)
     const transition = available[0];
-    const result = await this.fsm!.transition(transition.to, state);
+    
+    // Before transition: execute on_exit hook
+    const exitResult = await this.executeStepHook('on_exit', state.step, transition.to);
+    if (exitResult?.type === 'abort') {
+      return { success: false, from: state.step, to: transition.to, error: exitResult.reason };
+    }
+    
+    const target = exitResult?.type === 'transition' ? exitResult.to : transition.to;
+    const currentState = await this.stateManager!.getState();
+    const result = await this.fsm!.transition(target, currentState);
     
     if (result.success) {
-      await this.stateManager!.updatePhase(result.to);
+      await this.stateManager!.updateStep(result.to);
       this.status = 'running';
+      
+      await this.transitionLog.append({
+        workflow: state.workflow,
+        from: state.step,
+        to: result.to,
+        type: 'transition',
+        gate: transition.gate
+      });
+
+      // After transition: execute on_enter hook
+      const enterResult = await this.executeStepHook('on_enter', result.to);
+      if (enterResult && (enterResult.type === 'abort' || enterResult.type === 'transition')) {
+        console.warn(`Hook 'on_enter' for step '${result.to}' returned '${enterResult.type}'. ` +
+          `Rollback/Immediate redirection not fully supported in on_enter yet.`);
+      }
     }
     
     return result;
   }
 
   /**
-   * Handle sub-workflow invocation from current phase
+   * Execute a snippet hook (on_enter or on_exit) for a step
+   */
+  private async executeStepHook(
+    hookType: 'on_enter' | 'on_exit', 
+    stepId: string, 
+    transitionTo?: string
+  ): Promise<SnippetResult | null> {
+    const step = this.fsm!.getCurrentStepDefinition();
+    const hookId = step?.[hookType];
+    if (!hookId || !this.snippetExecutor) return null;
+    
+    const state = await this.stateManager!.getState();
+    const result = await this.snippetExecutor.execute(hookId, {
+      state: state as any,
+      meta: {
+        workflowId: state.workflow,
+        stepId: stepId,
+        transitionTo
+      },
+      projectDir: this.projectDir,
+    });
+    
+    // Apply patch if returned
+    if (result.type === 'patch') {
+      await this.updateState(result.patch);
+    }
+    
+    return result;
+  }
+
+  /**
+   * Handle sub-workflow invocation from current step
    */
   private async handleInvoke(config: InvokeConfig, state: ProtocolState): Promise<TransitionResult> {
-    const from = state.phase;
+    const from = state.step;
     
     // Build input from parent state using input mapping
     const input: Record<string, unknown> = {};
@@ -151,39 +222,46 @@ export class ArcanumEngine {
       }
     }
     
-    // Determine resume phase after child completes
+    // Determine resume step after child completes
     const resumeTo = config.on_complete;
 
-    // Before invoking child, validate resume phase exists in current workflow
+    // Before invoking child, validate resume step exists in current workflow
     if (resumeTo) {
       const currentWorkflow = this.getWorkflow(state.workflow);
-      const resumePhase = currentWorkflow.phases.find(p => p.id === resumeTo);
-      if (!resumePhase) {
-        throw new Error(`Invalid on_complete phase '${resumeTo}' in workflow '${state.workflow}'`);
+      const resumeStep = currentWorkflow.steps.find(s => s.id === resumeTo);
+      if (!resumeStep) {
+        throw new Error(`Invalid on_complete step '${resumeTo}' in workflow '${state.workflow}'`);
       }
     }
     
-    // Get child workflow and initial phase
+    // Get child workflow and initial step
     const childWorkflow = this.getWorkflow(config.workflow);
-    const childInitialPhase = FSMExecutor.getInitialPhase(childWorkflow);
+    const childInitialStep = FSMExecutor.getInitialStep(childWorkflow);
     
     // Invoke child workflow
     const newState = await this.stateManager!.invokeChild(
       config.workflow,
-      childInitialPhase,
+      childInitialStep,
       input,
       resumeTo,
       config.output
     );
     
     // Update FSM to child workflow
-    this.fsm = new FSMExecutor(childWorkflow, this.projectDir, childInitialPhase);
+    this.fsm = new FSMExecutor(childWorkflow, this.projectDir, childInitialStep);
     this.status = 'running';
+
+    await this.transitionLog.append({
+      workflow: state.workflow,
+      from,
+      to: `${config.workflow}:${childInitialStep}`,
+      type: 'invoke'
+    });
     
     return {
       success: true,
       from,
-      to: `${config.workflow}:${childInitialPhase}`,
+      to: `${config.workflow}:${childInitialStep}`,
     };
   }
 
@@ -191,7 +269,7 @@ export class ArcanumEngine {
    * Handle child workflow completion - return to parent
    */
   private async handleChildComplete(state: ProtocolState): Promise<TransitionResult> {
-    const from = `${state.workflow}:${state.phase}`;
+    const from = `${state.workflow}:${state.step}`;
     
     // Get child result (from nested state or state fields)
     const childResult: Record<string, unknown> = {};
@@ -218,13 +296,20 @@ export class ArcanumEngine {
     
     // Update FSM to parent workflow
     const parentWorkflow = this.getWorkflow(newState.workflow);
-    this.fsm = new FSMExecutor(parentWorkflow, this.projectDir, newState.phase);
+    this.fsm = new FSMExecutor(parentWorkflow, this.projectDir, newState.step);
     this.status = 'running';
+
+    await this.transitionLog.append({
+      workflow: state.workflow,
+      from,
+      to: newState.step,
+      type: 'return'
+    });
     
     return {
       success: true,
       from,
-      to: newState.phase,
+      to: newState.step,
     };
   }
 
@@ -269,7 +354,7 @@ export class ArcanumEngine {
     return {
       status: this.status,
       workflow: state?.workflow ?? null,
-      phase: state?.phase ?? null,
+      step: state?.step ?? null,
       depth: state?.depth ?? 0,
       error: this.error
     };
@@ -305,7 +390,7 @@ export class ArcanumEngine {
     // Reinitialize FSM for parent workflow
     const state = await this.stateManager!.getState();
     const workflow = this.getWorkflow(state.workflow);
-    this.fsm = new FSMExecutor(workflow, this.projectDir, state.phase);
+    this.fsm = new FSMExecutor(workflow, this.projectDir, state.step);
   }
 
   /**
@@ -334,7 +419,7 @@ export class ArcanumEngine {
   }
 
   /**
-   * Get available transitions from current phase
+   * Get available transitions from current step
    */
   async getAvailableTransitions(): Promise<string[]> {
     this.ensureReady();

@@ -60,7 +60,7 @@ export class ContextBuilder {
       '## Current Protocol State',
       '',
       `**Workflow**: ${state.workflow}`,
-      `**Phase**: ${state.phase}`,
+      `**Step**: ${state.step}`,
       `**Status**: ${state.status}`,
     ];
 
@@ -113,7 +113,7 @@ export class ContextBuilder {
   formatStateCompact(state: ProtocolState): string {
     return JSON.stringify({
       workflow: state.workflow,
-      phase: state.phase,
+      step: state.step,
       status: state.status,
       tasks: state.tasks?.length ?? 0,
     });
