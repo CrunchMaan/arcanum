@@ -1,0 +1,146 @@
+{
+  "purpose": "Rules for creating and running sprints by agents",
+  "sprint_definition": {
+    "description": "A sprint is a package of tasks united by a single goal",
+    "expected_outcome": "Preferably a working, usable result",
+    "ordering": {
+      "type": "sequential",
+      "id_scheme": "three-digit number + name",
+      "example": "003-auth-refactor"
+    }
+  },
+  "files": {
+    "Sprints.md": "Canonical rules for sprint creation and lifecycle management",
+    "Index.md": {
+      "description": "Global sprint index",
+      "fields": [
+        "name",
+        "description",
+        "status",
+        "statistics (number of tasks)"
+      ]
+    }
+  },
+  "structure": {
+    "layout": "Each sprint has its own directory",
+    "inside_sprint_directory": {
+      "info.md": {
+        "content": [
+          "Goal",
+          "Start date",
+          "Close date",
+          "Description",
+          "Status",
+          "Results (time spent, number of tasks)"
+        ]
+      },
+      "status.json": {
+        "description": "Current sprint status",
+        "fields": [
+          "tasks_in_progress",
+          "task_count_by_status (new, process, done)",
+          "total_time_spent"
+        ]
+      },
+      "tasks.json": {
+        "description": "List of active and planned tasks"
+      },
+      "tasks_done.json": {
+        "description": "List of completed tasks"
+      },
+      "graph.json": {
+        "description": "Task dependency graph defining execution order"
+      }
+    }
+  },
+  "sprint_workflow": {
+    "steps": [
+      {
+        "step": 1,
+        "action": "Define sprint goal and name"
+      },
+      {
+        "step": 2,
+        "action": "Create sprint directory and base files",
+        "files": {
+          "info.md": {
+            "initial_status": "new"
+          },
+          "status.json": {},
+          "tasks.json": "empty",
+          "tasks_done.json": "empty",
+          "graph.json": "empty"
+        }
+      },
+      {
+        "step": 3,
+        "action": "Task decomposition with Architect",
+        "result": "Populate tasks.json and update status.json"
+      },
+      {
+        "step": 4,
+        "action": "Review decomposition quality and revise if necessary"
+      },
+      {
+        "step": 5,
+        "action": "Create task graph defining dependencies and execution order"
+      },
+      {
+        "step": 6,
+        "action": "Mark sprint as ready",
+        "status": "wait"
+      },
+      {
+        "step": 7,
+        "action": "PM takes sprint into execution",
+        "status": "work"
+      },
+      {
+        "step": 8,
+        "action": "Complete all tasks",
+        "status": "done"
+      }
+    ],
+    "index_sync_rule": "All status changes must be reflected in the global Index.md"
+  },
+  "pm_workflow": {
+    "steps": [
+      {
+        "step": 1,
+        "action": "Ensure sprint status is 'work'"
+      },
+      {
+        "step": 2,
+        "action": "Read task graph and decide execution strategy (sequential or parallel)",
+        "output": {
+          "process.json": "List of task IDs selected for execution"
+        }
+      },
+      {
+        "step": 3,
+        "action": "For each task in process.json, start task_workflow",
+        "task_status": "process"
+      },
+      {
+        "step": 4,
+        "action": "On successful task completion",
+        "substeps": [
+          "Set task status to 'done'",
+          "Copy task to tasks_done.json",
+          "Write workflow output to task.result field",
+          "Commit changes if commit flag or global setting is enabled",
+          "Update process.json"
+        ]
+      },
+      {
+        "step": 5,
+        "action": "Repeat until no tasks remain"
+      }
+    ],
+    "interruptibility": {
+      "allowed": true,
+      "resume_rule": "Sprint can be resumed from the current state without data loss"
+    }
+  },
+  "executor_commands": ["Start or continue sprint", "Stop sprint execution"]
+}

@@ -13,16 +13,43 @@ import {
   antigravity_quota,
   createSkillTools,
   SkillMcpManager,
+  createArcanumTools,
 } from "./tools";
 import { loadPluginConfig, type TmuxConfig } from "./config";
 import { createBuiltinMcps } from "./mcp";
-import { createAutoUpdateCheckerHook, createPhaseReminderHook, createPostReadNudgeHook } from "./hooks";
+import { createAutoUpdateCheckerHook, createPhaseReminderHook, createPostReadNudgeHook, createArcanumProtocolHook } from "./hooks";
 import { startTmuxCheck } from "./utils";
 import { log } from "./shared/logger";
+import { ArcanumEngine, ProtocolLoader, type ProtocolDefinition } from './arcanum';
+import * as fs from 'fs/promises';
+import * as path from 'path';
 
 const OhMyOpenCodeLite: Plugin = async (ctx) => {
   const config = loadPluginConfig(ctx.directory);
-  const agents = getAgentConfigs(config);
+
+  // Detect and initialize Arcanum protocol
+  let protocol: ProtocolDefinition | undefined;
+  let arcanumEngine: ArcanumEngine | undefined;
+
+  const protocolPath = path.join(ctx.directory, '.opencode', 'protocol', 'index.yaml');
+  if (await fileExists(protocolPath)) {
+    try {
+      const loader = new ProtocolLoader();
+      protocol = await loader.load(ctx.directory);
+      const engine = new ArcanumEngine(ctx.directory);
+      await engine.initialize();
+      arcanumEngine = engine; // Only assign after successful init
+      log('[plugin] Arcanum protocol detected and initialized', {
+        name: protocol.index.name,
+        workflow: protocol.index.default_workflow,
+      });
+    } catch (err) {
+      log('[plugin] Failed to initialize Arcanum protocol', { error: String(err) });
+      // arcanumEngine remains undefined, tools/hooks won't be created
+    }
+  }
+
+  const agents = getAgentConfigs(config, protocol);
 
   // Parse tmux config with defaults
   const tmuxConfig: TmuxConfig = {
@@ -63,6 +90,10 @@ const OhMyOpenCodeLite: Plugin = async (ctx) => {
   // Initialize post-read nudge hook
   const postReadNudgeHook = createPostReadNudgeHook();
 
+  // Initialize Arcanum tools and hook if protocol is active
+  const arcanumTools = arcanumEngine ? createArcanumTools(arcanumEngine) : {};
+  const arcanumProtocolHook = arcanumEngine ? createArcanumProtocolHook(arcanumEngine) : null;
+
   return {
     name: "oh-my-opencode-slim",
 
@@ -79,6 +110,7 @@ const OhMyOpenCodeLite: Plugin = async (ctx) => {
       ast_grep_replace,
       antigravity_quota,
       ...skillTools,
+      ...arcanumTools,
     },
 
     mcp: mcps,
@@ -113,13 +145,31 @@ const OhMyOpenCodeLite: Plugin = async (ctx) => {
       });
     },
 
-    // Inject phase reminder before sending to API (doesn't show in UI)
-    "experimental.chat.messages.transform": phaseReminderHook["experimental.chat.messages.transform"],
+    // Inject phase reminder (and protocol context if active) before sending to API
+    "experimental.chat.messages.transform": async (
+      input: Record<string, never>,
+      output: { messages: Array<{ info: { role: string; agent?: string }; parts: Array<{ type: string; text?: string }> }> }
+    ): Promise<void> => {
+      await phaseReminderHook["experimental.chat.messages.transform"](input, output);
+      if (arcanumProtocolHook) {
+        await arcanumProtocolHook["experimental.chat.messages.transform"](input, output);
+      }
+    },
 
     // Nudge after file reads to encourage delegation
     "tool.execute.after": postReadNudgeHook["tool.execute.after"],
   };
 };
+
+// Helper function
+async function fileExists(p: string): Promise<boolean> {
+  try {
+    await fs.access(p);
+    return true;
+  } catch {
+    return false;
+  }
+}
 
 export default OhMyOpenCodeLite;
 

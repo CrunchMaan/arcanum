@@ -18,3 +18,6 @@ export { antigravity_quota } from "./quota";
 
 // Skill tools
 export { createSkillTools, SkillMcpManager } from "./skill";
+
+// Arcanum tools
+export { createArcanumTools } from './arcanum';

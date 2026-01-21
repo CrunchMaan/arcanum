@@ -5,7 +5,8 @@
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "bin": {
-    "oh-my-opencode-slim": "./dist/cli/index.js"
+    "oh-my-opencode-slim": "./dist/cli/index.js",
+    "arcanum": "./dist/cli/arcanum.js"
   },
   "type": "module",
   "license": "MIT",
@@ -34,7 +35,7 @@
     "LICENSE"
   ],
   "scripts": {
-    "build": "bun build src/index.ts --outdir dist --target bun --format esm && bun build src/cli/index.ts --outdir dist/cli --target bun --format esm && tsc --emitDeclarationOnly",
+    "build": "bun build src/index.ts --outdir dist --target bun --format esm && bun build src/cli/index.ts --outdir dist/cli --target bun --format esm && bun build src/cli/arcanum.ts --outdir dist/cli --target bun --format esm && tsc --emitDeclarationOnly",
     "typecheck": "tsc --noEmit",
     "test": "bun test",
     "dev": "bun run build && opencode",
@@ -45,6 +46,7 @@
     "@modelcontextprotocol/sdk": "^1.25.1",
     "@opencode-ai/plugin": "^1.1.19",
     "@opencode-ai/sdk": "^1.1.19",
+    "yaml": "^2.8.2",
     "zod": "^4.1.8"
   },
   "devDependencies": {

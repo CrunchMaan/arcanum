@@ -1,0 +1,126 @@
+{
+  "purpose": "Rules for defining, executing, and tracking tasks for Cursor / Antigravity agents",
+  "core_principles": {
+    "small_tasks": "All tasks must be broken down into small, manageable steps that are easy to implement and verify",
+    "workflow_driven": "Every task must define a clear, explicit workflow as an ordered sequence of steps",
+    "test_driven": "Every task must include automated tests and an explicit verification step to ensure correctness"
+  },
+  "task_definition": {
+    "description": "A task is the smallest executable unit of work within a sprint",
+    "scope": "Each task must be atomic, goal-oriented, and independently traceable"
+  },
+  "storage": {
+    "primary_file": "state/sprint.json",
+    "tasks_field": "tasks",
+    "format": "json",
+    "description": "Tasks stored in sprint state file under 'tasks' field"
+  },
+  "task_schema": {
+    "required_fields": {
+      "sprint_id": {
+        "type": "string",
+        "description": "Identifier of the sprint the task belongs to"
+      },
+      "category": {
+        "type": "string",
+        "description": "Task category (e.g. functional, ui, internal, bugfix)"
+      },
+      "id": {
+        "type": "string",
+        "description": "Unique task identifier within the sprint (e.g. task-01)"
+      },
+      "goal": {
+        "type": "string",
+        "description": "High-level goal of the task"
+      },
+      "steps": {
+        "type": "array",
+        "items": "string",
+        "description": "Ordered list of workflow steps required to complete the task (must include tests and verification)"
+      },
+      "context": {
+        "type": "string",
+        "description": "Task context: info to help task executor understand the task (links to related resources in project context, extra notes etc)"
+      },
+      "status": {
+        "type": "string",
+        "description": "Current task status"
+      }
+    },
+    "optional_fields_on_completion": {
+      "result": {
+        "type": "string | object",
+        "description": "Result produced by the sub-agent after task completion"
+      },
+      "timespent": {
+        "type": "number",
+        "description": "Execution time spent on the task (global time unit, e.g. minutes)"
+      }
+    }
+  },
+  "task_example": {
+    "sprint_id": "003-auth-refactor",
+    "category": "functional",
+    "id": "task-01",
+    "goal": "Implement token refresh mechanism",
+    "steps": [
+      "Analyze current authentication flow",
+      "Design refresh token strategy",
+      "Implement backend refresh endpoint",
+      "Update client integration",
+      "Write automated tests",
+      "Run verification and validate results"
+    ],
+    "status": "new"
+  },
+  "statuses": {
+    "new": "Task is defined but not yet started",
+    "process": "Task is currently in execution",
+    "done": "Task is successfully completed",
+    "fail": "Task execution failed and requires review or rework"
+  },
+  "lifecycle_rules": {
+    "initial_status": "new",
+    "execution_transition": "new -> process",
+    "success_transition": "process -> done",
+    "failure_transition": "process -> fail"
+  },
+  "completion_rules": {
+    "on_done": [
+      "Add field 'result' with sub-agent output",
+      "Add field 'timespent'",
+      "Move task entry to tasks_done.json"
+    ],
+    "on_fail": [
+      "Preserve task in tasks.json",
+      "Set status to 'fail'",
+      "Optionally attach partial result or error context"
+    ]
+  },
+  "constraints": {
+    "id_uniqueness": "Task IDs must be unique within a sprint",
+    "immutability": {
+      "after_done": ["goal", "steps"],
+      "allowed_changes": ["status", "result", "timespent"]
+    },
+    "quality_gates": [
+      "Workflow steps are explicit and ordered",
+      "Automated tests are present",
+      "Verification step is executed successfully"
+    ]
+  },
+  "agent_responsibilities": {
+    "executor": [
+      "Follow steps sequentially unless the task graph allows parallel execution",
+      "Implement and run automated tests",
+      "Update task status explicitly",
+      "Persist execution results in task fields"
+    ],
+    "pm": [
+      "Select tasks for execution",
+      "Ensure tasks comply with core principles",
+      "Monitor task status transitions",
+      "Verify completed tasks are archived correctly"
+    ]
+  }
+}

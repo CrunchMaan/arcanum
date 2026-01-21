@@ -1,0 +1,8 @@
+# Ralph protocol metadata
+name: "ralph"
+version: "1.0.0"
+description: "Простой цикл задач: decompose → work_loop → done, с возможностью pause/resume"
+default_workflow: "task_loop"
+
+state:
+  format: single

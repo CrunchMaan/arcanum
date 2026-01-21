@@ -1,0 +1,11 @@
+# Wize protocol metadata
+name: "wize"
+version: "1.0.0"
+description: "Полный протокол со спринтами, контекстом, документацией"
+default_workflow: "main"
+
+state:
+  format: multi
+
+metadata:
+  ruleset: "wize"

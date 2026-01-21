@@ -1,3 +1,5 @@
+import { AgentResolver, createBaseAgentMap, type ResolvedAgent } from "../arcanum/agents";
+import type { ProtocolDefinition } from "../arcanum/protocol/loader";
 import type { AgentConfig as SDKAgentConfig } from "@opencode-ai/sdk";
 import { DEFAULT_MODELS, type PluginConfig, type AgentOverrideConfig } from "../config";
 import { createOrchestratorAgent, type AgentDefinition } from "./orchestrator";
@@ -112,20 +114,74 @@ export function createAgents(config?: PluginConfig): AgentDefinition[] {
   return [orchestrator, ...allSubAgents];
 }
 
-export function getAgentConfigs(config?: PluginConfig): Record<string, SDKAgentConfig> {
+export function getAgentConfigs(
+  config?: PluginConfig,
+  protocol?: ProtocolDefinition
+): Record<string, SDKAgentConfig> {
   const agents = createAgents(config);
-  return Object.fromEntries(
-    agents.map((a) => {
-      const sdkConfig: SDKAgentConfig = { ...a.config, description: a.description };
+  const result: Record<string, SDKAgentConfig> = {};
 
-      // Apply classification-based visibility and mode
-      if (isSubagent(a.name)) {
-        sdkConfig.mode = "subagent";
-      } else if (a.name === "orchestrator") {
-        sdkConfig.mode = "primary";
-      }
-
-      return [a.name, sdkConfig];
-    })
+  // Build base agents map for resolver
+  const baseAgentMap = createBaseAgentMap(
+    agents.map((a) => ({
+      name: a.name,
+      config: {
+        prompt: a.config.prompt ?? "",
+        model: a.config.model,
+      },
+    }))
   );
+
+  // Add plugin agents to result
+  for (const a of agents) {
+    const sdkConfig: SDKAgentConfig = { ...a.config, description: a.description };
+
+    // Apply classification-based visibility and mode
+    if (isSubagent(a.name)) {
+      sdkConfig.mode = "subagent";
+      sdkConfig.hidden = true;
+    } else if (a.name === "orchestrator") {
+      sdkConfig.mode = "primary";
+    }
+
+    result[a.name] = sdkConfig;
+  }
+
+  // If protocol has custom agents, resolve and add them
+  if (protocol?.agents && protocol.agents.size > 0) {
+    const resolver = new AgentResolver(protocol.agents, baseAgentMap);
+
+    // Validate agents
+    const validation = resolver.validate();
+    if (!validation.valid) {
+      console.warn("Protocol agent validation errors:", validation.errors);
+    }
+
+    // Resolve each protocol agent
+    for (const [agentId] of protocol.agents) {
+      try {
+        const resolved = resolver.resolve(agentId);
+        result[agentId] = resolvedAgentToSdkConfig(resolved);
+      } catch (err) {
+        console.warn(`Failed to resolve agent ${agentId}:`, err);
+      }
+    }
+  }
+
+  return result;
+}
+
+/**
+ * Helper function to convert ResolvedAgent to SDKAgentConfig format
+ */
+function resolvedAgentToSdkConfig(agent: ResolvedAgent): SDKAgentConfig {
+  return {
+    prompt: agent.prompt,
+    description: agent.description,
+    model: agent.model?.name,
+    temperature: agent.model?.temperature,
+    mode: "subagent",
+    hidden: true,
+    // Tools are handled separately by the engine in MVP
+  };
 }

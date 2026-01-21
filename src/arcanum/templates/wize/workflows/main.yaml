@@ -1,0 +1,43 @@
+# Main workflow: vision → architecture → decomposition → sprint_exec
+id: main
+name: "Main Wize Workflow"
+description: "vision → architecture → decomposition → sprint execution"
+
+include: "sprint_exec"
+
+phases:
+  - id: vision
+    name: "Vision"
+
+  - id: architecture
+    name: "Architecture"
+
+  - id: decomposition
+    name: "Decomposition"
+
+transitions:
+  - from: vision
+    to: architecture
+    gate:
+      type: criteria
+      check: "state.artifacts?.vision?.status === 'approved'"
+
+  - from: architecture
+    to: decomposition
+    gate:
+      type: criteria
+      check: "state.artifacts?.architecture?.status === 'approved'"
+
+  - from: decomposition
+    to: new
+    priority: 1
+    gate:
+      type: criteria
+      check: "state.id != null"
+
+  # fallback: вернуться к architecture если sprint не создан
+  - from: decomposition
+    to: architecture
+    priority: 2
+    gate:
+      type: manual

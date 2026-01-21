@@ -1,0 +1,41 @@
+# Sprint workflow: new → wait → work → done
+id: sprint_exec
+name: "Sprint Execution"
+description: "Wize sprint lifecycle"
+
+phases:
+  - id: new
+    name: "Sprint Draft"
+
+  - id: wait
+    name: "Sprint Ready"
+
+  - id: work
+    name: "Sprint In Progress"
+
+  - id: done
+    name: "Sprint Done"
+    terminal: true
+
+transitions:
+  - from: new
+    to: wait
+    gate:
+      type: manual
+      description: "PM approves sprint plan"
+
+  - from: wait
+    to: work
+    gate:
+      type: file_exists
+      path: "./fact/process.json"
+
+  - from: work
+    to: done
+    gate:
+      type: criteria
+      check: "state.tasks?.every(t => t.status === 'done')"
+      retry:
+        mode: fixed
+        interval: "5s"
+        max_attempts: 10

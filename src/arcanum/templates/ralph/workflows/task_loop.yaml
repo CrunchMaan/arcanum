@@ -1,0 +1,69 @@
+# FSM workflow: Ralph Task Loop
+id: task_loop
+name: "Ralph Task Loop"
+description: "Decompose задачи → циклическая работа → завершение или пауза"
+
+phases:
+  - id: decompose
+    name: "Decompose"
+
+  - id: work_loop
+    name: "Work Loop"
+
+  - id: paused
+    name: "Paused"
+
+  - id: done
+    name: "Done"
+    terminal: true
+
+transitions:
+  # decompose → work_loop (если есть задачи)
+  - from: decompose
+    to: work_loop
+    priority: 1
+    gate:
+      type: criteria
+      check: "state.tasks && state.tasks.length > 0"
+
+  # decompose → done (если задач нет — fallback)
+  - from: decompose
+    to: done
+    priority: 2
+    gate:
+      type: criteria
+      check: "!state.tasks || state.tasks.length === 0"
+
+  # work_loop → work_loop (если остаются незавершённые задачи)
+  - from: work_loop
+    to: work_loop
+    priority: 1
+    gate:
+      type: criteria
+      check: "state.tasks?.some(t => t.status !== 'done')"
+
+  # work_loop → done (все задачи завершены)
+  - from: work_loop
+    to: done
+    priority: 2
+    gate:
+      type: criteria
+      check: "state.tasks?.every(t => t.status === 'done')"
+
+  # Прерывание: decompose → paused
+  - from: decompose
+    to: paused
+    gate:
+      type: manual
+
+  # Прерывание: work_loop → paused
+  - from: work_loop
+    to: paused
+    gate:
+      type: manual
+
+  # Resume: paused → work_loop
+  - from: paused
+    to: work_loop
+    gate:
+      type: manual

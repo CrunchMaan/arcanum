@@ -1,5 +1,6 @@
 #!/usr/bin/env bun
 import { install } from "./install"
+import { runArcanumCli } from "../arcanum/cli"
 import type { InstallArgs, BooleanArg } from "./types"
 
 function parseArgs(args: string[]): InstallArgs {
@@ -29,11 +30,23 @@ function parseArgs(args: string[]): InstallArgs {
 
 function printHelp(): void {
   console.log(`
-oh-my-opencode-slim installer
+oh-my-opencode-slim
 
-Usage: bunx oh-my-opencode-slim install [OPTIONS]
+Usage: bunx oh-my-opencode-slim <command> [OPTIONS]
 
-Options:
+Commands:
+  install            Install and configure the plugin
+  arcanum <cmd>      Protocol execution engine commands
+
+Arcanum Commands:
+  arcanum init       Initialize protocol from template
+  arcanum status     Show current workflow state
+  arcanum validate   Validate protocol against schemas
+  arcanum run        Execute workflow step
+  arcanum reset      Reset state to initial
+  arcanum templates  List available templates
+
+Install Options:
   --antigravity=yes|no   Antigravity subscription (yes/no)
   --openai=yes|no        OpenAI API access (yes/no)
   --tmux=yes|no          Enable tmux integration (yes/no)
@@ -43,7 +56,8 @@ Options:
 
 Examples:
   bunx oh-my-opencode-slim install
-  bunx oh-my-opencode-slim install --no-tui --antigravity=yes --openai=yes --tmux=no
+  bunx oh-my-opencode-slim arcanum init ralph
+  bunx oh-my-opencode-slim arcanum status
 `)
 }
 
@@ -53,6 +67,10 @@ async function main(): Promise<void> {
   if (args.length === 0 || args[0] === "install") {
     const installArgs = parseArgs(args.slice(args[0] === "install" ? 1 : 0))
     const exitCode = await install(installArgs)
+    process.exit(exitCode)
+  } else if (args[0] === "arcanum") {
+    // Arcanum CLI commands
+    const exitCode = await runArcanumCli(args.slice(1))
     process.exit(exitCode)
   } else if (args[0] === "-h" || args[0] === "--help") {
     printHelp()

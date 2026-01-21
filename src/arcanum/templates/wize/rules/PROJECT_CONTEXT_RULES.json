@@ -1,0 +1,210 @@
+{
+  "title": "Project Context Storage Rules",
+  "purpose": "Canonical rules for agents to store, preserve, and evolve project context.",
+  "project_context": {
+    "description": "Unified, canonical knowledge base of the project.",
+    "storage_rules": {
+      "primary_format": "markdown",
+      "allowed_mirror": "json",
+      "single_source_of_truth": "markdown",
+      "frontmatter_required": true,
+      "frontmatter_schema": {
+        "desc": "Short description of the document",
+        "modified": "YYYY-MM-DD"
+      }
+    }
+  },
+  "directory_layout": {
+    "root": "./context/",
+    "root_files": {
+      "index.md": {
+        "role": "Master index of all context files",
+        "rules": [
+          "Entry point for all agents",
+          "Describes what exists and where it lives"
+        ]
+      },
+      "Project.md": {
+        "content": [
+          "Project goal and vision",
+          "High-level scope",
+          "Core principles",
+          "Conceptual modularity"
+        ],
+        "restrictions": [
+          "No implementation details"
+        ]
+      },
+      "Architecture.md": {
+        "content": [
+          "High-level system architecture",
+          "Module boundaries and responsibilities",
+          "Conceptual dependency graph",
+          "Links to module documentation"
+        ],
+        "critical_rules": [
+          "No duplication of information",
+          "Only high-level requirements and references",
+          "All details live in module or contract files"
+        ]
+      }
+    }
+  },
+  "modules": {
+    "path": "./context/modules/",
+    "index_file": "modules/index.md",
+    "index_rules": [
+      "List all modules",
+      "One-line description per module",
+      "Links to module folders"
+    ],
+    "module_definition": {
+      "description": "A cohesive, standalone block of the application",
+      "path_pattern": "./context/modules/<module_name>/",
+      "required_files": {
+        "module_header.md": {
+          "fields": [
+            "purpose",
+            "responsibilities",
+            "tech_stack",
+            "category"
+          ],
+          "allowed_categories": [
+            "backend",
+            "frontend",
+            "tool",
+            "library",
+            "business_rules",
+            "config",
+            "other"
+          ]
+        },
+        "module_interface.md": {
+          "fields": [
+            "public_interface",
+            "apis",
+            "events",
+            "inputs_outputs",
+            "referenced_contracts"
+          ]
+        },  
+        "module_examples.md": {
+          "fields": [
+            "usage_examples",
+            "typical_flows",
+            "edge_cases"
+          ]
+        },
+        "module_init.md": {
+          "fields": [
+            "environment_setup",
+            "configuration_requirements",
+            "initialization_steps"
+          ]
+        },
+        "module_adr.md": {
+          "fields": [
+            "decision",
+            "rationale",
+            "alternatives"
+          ],
+          "rules": [
+            "Accepted ADRs are immutable"
+          ]
+        },
+        "module_external.md": {
+          "fields": [
+            "external_dependencies",
+            "documentation_links",
+            "cached_sources"
+          ]
+        }
+      }
+    }
+  },
+  "contracts": {
+    "path": "./context/contracts/",
+    "description": "Inter-module interaction contracts",
+    "allowed_content": [
+      "interfaces",
+      "schemas",
+      "protocols",
+      "mermaid_diagrams"
+    ],
+    "rules": [
+      "Contracts are authoritative",
+      "Modules must conform to contracts",
+      "Contracts must never be redefined in modules"
+    ]
+  },
+  "external_sources": {
+    "path": "./context/external/",
+    "description": "External information relevant to the project",
+    "content_types": [
+      "cached_documents",
+      "rfcs",
+      "specs",
+      "whitepapers"
+    ],
+    "purpose": "Prevent context loss and link rot"
+  },
+  "documentation": {
+    "path": "./context/docs/",
+    "description": "Narrative and explanatory documentation",
+    "rules": [
+      "Non-authoritative",
+      "Descriptive only"
+    ]
+  },
+  "planning": {
+    "path": "./plans/",
+    "general_plan": {
+      "file": "general_plan.md",
+      "content": [
+        "High-level roadmap",
+        "Phases",
+        "Milestones",
+        "Sprints"
+      ],
+      "restriction": "Strategic intent only"
+    },
+    "sprints": {
+      "path": "./plans/sprints/",
+      "sprint_contents": [
+        "goals",
+        "scope",
+        "constraints",
+        "expected_outputs"
+      ]
+    }
+  },
+  "active_work": {
+    "path": "./fact/",
+    "description": "Currently active sprint",
+    "implementation_options": [
+      "real_directory",
+      "symlink_to_active_sprint"
+    ],
+    "rules": [
+      "Only one active sprint at a time"
+    ]
+  },
+  "global_invariants": [
+    "Markdown is the single source of truth",
+    "No duplication across files",
+    "High-level → reference → detail structure",
+    "Top-level files contain no details",
+    "Agents must read context/index.md first",
+    "Agents must respect module boundaries",
+    "Agents must update modified on every change",
+    "Information without a clear home must not be stored"
+  ],
+  "agent_enforcement_rules": [
+    "Never invent undocumented structure",
+    "Never store knowledge outside /context",
+    "Never duplicate information",
+    "Always link instead of copying",
+    "Treat this structure as canonical and persistent"
+  ],
+  "failure_condition": "Violation of these rules causes context drift and is considered a system failure"
+}
