@@ -59,7 +59,8 @@ describe('Workflow Nesting', () => {
       expect(returnedState.phase).toBe('review'); // resume_to phase
       expect(returnedState.depth).toBe(0);
       expect(returnedState.call_stack).toEqual([]);
-      expect((returnedState as any)._child_result).toEqual({ result: 'success' });
+      // Results are now merged directly into state
+      expect((returnedState as any).result).toBe('success');
     });
 
     it('should support multiple nesting levels', async () => {

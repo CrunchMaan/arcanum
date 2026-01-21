@@ -158,6 +158,7 @@ export const CallStackEntrySchema = z.object({
   workflow: z.string().describe('Parent workflow ID'),
   phase: z.string().describe('Phase that invoked child'),
   resume_to: z.string().optional().describe('Phase to resume after child completes'),
+  output_mapping: z.record(z.string(), z.string()).optional().describe('Маппинг child result → parent state'),
 }).strict();
 
 /**

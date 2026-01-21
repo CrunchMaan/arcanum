@@ -25,11 +25,17 @@ export class StateManager {
   async load(): Promise<ProtocolState> {
     await this.ensureStateDir();
     
-    if (this.format === 'single') {
-      return this.loadSingle();
-    } else {
-      return this.loadMulti();
+    const state = this.format === 'single' 
+      ? await this.loadSingle() 
+      : await this.loadMulti();
+
+    // Consistency assertion: depth must match call_stack length
+    const stackLength = state.call_stack?.length ?? 0;
+    if (state.depth !== stackLength) {
+      throw new Error(`State consistency error: depth (${state.depth}) does not match call_stack length (${stackLength})`);
     }
+
+    return state;
   }
 
   /**
@@ -104,13 +110,14 @@ export class StateManager {
     childWorkflowId: string,
     childInitialPhase: string,
     input: Record<string, unknown> = {},
-    resumeToPhase?: string
+    resumeToPhase?: string,
+    outputMapping?: Record<string, string>
   ): Promise<ProtocolState> {
     const state = await this.load();
-    const currentDepth = state.depth ?? 0;
+    const callStack = state.call_stack ?? [];
 
     // Check depth limit
-    if (currentDepth >= MAX_NESTING_DEPTH) {
+    if (callStack.length >= MAX_NESTING_DEPTH) {
       throw new Error(`Maximum nesting depth (${MAX_NESTING_DEPTH}) exceeded`);
     }
 
@@ -119,8 +126,9 @@ export class StateManager {
       workflow: state.workflow,
       phase: state.phase,
       resume_to: resumeToPhase,
+      output_mapping: outputMapping,
     };
-    const callStack = [...(state.call_stack ?? []), stackEntry];
+    const newCallStack = [...callStack, stackEntry];
 
     // Create nested state for tracking
     const nested: NestedState = {
@@ -128,7 +136,7 @@ export class StateManager {
       phase: childInitialPhase,
       status: 'running',
       input,
-      depth: currentDepth + 1,
+      depth: newCallStack.length,
     };
 
     // Update state to child workflow
@@ -137,8 +145,8 @@ export class StateManager {
       workflow: childWorkflowId,
       phase: childInitialPhase,
       status: 'running',
-      depth: currentDepth + 1,
-      call_stack: callStack,
+      depth: newCallStack.length,
+      call_stack: newCallStack,
       nested,
     };
 
@@ -168,14 +176,13 @@ export class StateManager {
     // Update state to parent workflow
     const newState: ProtocolState = {
       ...state,
+      ...result,
       workflow: parent.workflow,
       phase: resumePhase,
       status: 'running',
-      depth: (state.depth ?? 1) - 1,
+      depth: newCallStack.length,
       call_stack: newCallStack,
       nested: undefined,
-      // Store child result for parent access
-      _child_result: result,
     };
 
     await this.save(newState);

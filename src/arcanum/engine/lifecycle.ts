@@ -88,11 +88,19 @@ export class ArcanumEngine {
     
     const state = await this.stateManager!.getState();
     
-    // Check if current phase has invoke (sub-workflow call)
-    const invokeCheck = this.fsm!.checkInvoke();
-    if (invokeCheck.shouldInvoke && invokeCheck.config) {
-      // Handle sub-workflow invocation
-      return this.handleInvoke(invokeCheck.config, state);
+    // Check for child result first - if present, we just resumed from child
+    if ((state as any)._child_result) {
+      // Clear the flag and proceed to transitions
+      // This prevents re-invoking the child workflow if we resumed back to the same phase
+      delete (state as any)._child_result;
+      await this.stateManager!.save(state);
+    } else {
+      // Check if current phase has invoke (sub-workflow call)
+      const invokeCheck = this.fsm!.checkInvoke();
+      if (invokeCheck.shouldInvoke && invokeCheck.config) {
+        // Handle sub-workflow invocation
+        return this.handleInvoke(invokeCheck.config, state);
+      }
     }
     
     // Check if we're at terminal phase
@@ -145,6 +153,15 @@ export class ArcanumEngine {
     
     // Determine resume phase after child completes
     const resumeTo = config.on_complete;
+
+    // Before invoking child, validate resume phase exists in current workflow
+    if (resumeTo) {
+      const currentWorkflow = this.getWorkflow(state.workflow);
+      const resumePhase = currentWorkflow.phases.find(p => p.id === resumeTo);
+      if (!resumePhase) {
+        throw new Error(`Invalid on_complete phase '${resumeTo}' in workflow '${state.workflow}'`);
+      }
+    }
     
     // Get child workflow and initial phase
     const childWorkflow = this.getWorkflow(config.workflow);
@@ -155,7 +172,8 @@ export class ArcanumEngine {
       config.workflow,
       childInitialPhase,
       input,
-      resumeTo
+      resumeTo,
+      config.output
     );
     
     // Update FSM to child workflow
@@ -176,13 +194,27 @@ export class ArcanumEngine {
     const from = `${state.workflow}:${state.phase}`;
     
     // Get child result (from nested state or state fields)
-    const result: Record<string, unknown> = {};
+    const childResult: Record<string, unknown> = {};
     if (state.nested?.result) {
-      Object.assign(result, state.nested.result);
+      Object.assign(childResult, state.nested.result);
+    }
+    
+    // Get parent call stack entry to apply output mapping
+    const callStack = state.call_stack ?? [];
+    const parentEntry = callStack[callStack.length - 1];
+    
+    const mappedResult: Record<string, unknown> = {
+      _child_result: childResult
+    };
+
+    if (parentEntry?.output_mapping) {
+      for (const [parentKey, childPath] of Object.entries(parentEntry.output_mapping)) {
+        mappedResult[parentKey] = this.resolvePath(childResult as any, childPath);
+      }
     }
     
     // Return to parent
-    const newState = await this.stateManager!.returnToParent(result);
+    const newState = await this.stateManager!.returnToParent(mappedResult);
     
     // Update FSM to parent workflow
     const parentWorkflow = this.getWorkflow(newState.workflow);
